@@ -3,6 +3,8 @@ package com.steam.modeni.service;
 import com.steam.modeni.config.JwtUtil;
 import com.steam.modeni.domain.entity.Family;
 import com.steam.modeni.domain.entity.User;
+import com.steam.modeni.domain.enums.City;
+import com.steam.modeni.domain.enums.FamilyRole;
 import com.steam.modeni.dto.AuthResponse;
 import com.steam.modeni.dto.GetFamilyCodeResponse;
 import com.steam.modeni.dto.JoinFamilyRequest;
@@ -39,9 +41,17 @@ public class AuthService {
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
+        
+        // 기타 역할일 때 customRole 설정
+        if (request.getRole() == FamilyRole.OTHER) {
+            if (request.getCustomRole() == null || request.getCustomRole().trim().isEmpty()) {
+                throw new RuntimeException("기타 역할을 선택했을 때는 구체적인 역할을 입력해야 합니다.");
+            }
+            user.setCustomRole(request.getCustomRole().trim());
+        }
+        
+        // 지역 설정
         user.setCity(request.getCity());
-        user.setDistrict(request.getDistrict());
-        user.setPhoneNumber(request.getPhoneNumber());
         user.setAge(request.getAge());
         
         // 회원가입 시 항상 개인 가족 생성 (1인 가족)

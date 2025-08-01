@@ -1,5 +1,6 @@
 package com.steam.modeni.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,11 +26,14 @@ public class Family {
     private String motto;
     
     @OneToMany(mappedBy = "family", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<User> users;
     
     @OneToMany(mappedBy = "family", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Question> questions;
     
     @OneToMany(mappedBy = "family", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<MissionCheck> missionChecks;
 } 

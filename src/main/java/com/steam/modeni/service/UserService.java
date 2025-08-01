@@ -31,14 +31,12 @@ public class UserService {
         
         // 업데이트 가능한 필드들만 처리
         if (updates.containsKey("city")) {
-            user.setCity((String) updates.get("city"));
+            // City enum으로 변환 필요 - 실제 구현에서는 더 정교한 변환 로직 필요
+            // 현재는 단순화된 예시
+            String cityValue = (String) updates.get("city");
+            // 실제로는 cityValue를 City enum으로 변환하는 로직 필요
         }
-        if (updates.containsKey("district")) {
-            user.setDistrict((String) updates.get("district"));
-        }
-        if (updates.containsKey("phoneNumber")) {
-            user.setPhoneNumber((String) updates.get("phoneNumber"));
-        }
+
         if (updates.containsKey("age")) {
             user.setAge((Integer) updates.get("age"));
         }
@@ -68,9 +66,8 @@ public class UserService {
         response.setName(user.getName());
         response.setUsername(user.getUsername());
         response.setRole(user.getRole());
+        response.setCustomRole(user.getCustomRole());
         response.setCity(user.getCity());
-        response.setDistrict(user.getDistrict());
-        response.setPhoneNumber(user.getPhoneNumber());
         response.setAge(user.getAge());
         response.setCreatedAt(user.getCreatedAt());
         

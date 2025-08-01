@@ -1,5 +1,6 @@
 package com.steam.modeni.controller;
 
+import com.steam.modeni.domain.entity.Family;
 import com.steam.modeni.service.FamilyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,49 +16,37 @@ public class FamilyController {
     private final FamilyService familyService;
     
     @PostMapping
-    public ResponseEntity<?> createFamily(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Family> createFamily(@RequestBody Map<String, String> request) {
         try {
-            Map<String, Object> response = familyService.createFamily(request);
-            return ResponseEntity.ok(response);
+            String familyCode = request.get("familyCode");
+            String motto = request.get("motto");
+            Family family = familyService.createFamily(familyCode, motto);
+            return ResponseEntity.ok(family);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+            return ResponseEntity.badRequest().build();
         }
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<?> getFamilyById(@PathVariable Long id) {
+    public ResponseEntity<Family> getFamilyById(@PathVariable Long id) {
         try {
-            Map<String, Object> response = familyService.getFamilyById(id);
-            return ResponseEntity.ok(response);
+            Family family = familyService.getFamilyById(id);
+            return ResponseEntity.ok(family);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+            return ResponseEntity.notFound().build();
         }
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateFamily(@PathVariable Long id, @RequestBody Map<String, String> updates) {
+    public ResponseEntity<Family> updateFamily(
+            @PathVariable Long id, 
+            @RequestBody Map<String, String> request) {
         try {
-            Map<String, String> response = familyService.updateFamily(id, updates);
-            return ResponseEntity.ok(response);
+            String motto = request.get("motto");
+            Family family = familyService.updateFamily(id, motto);
+            return ResponseEntity.ok(family);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
-        }
-    }
-    
-    // 에러 응답용 내부 클래스
-    public static class ErrorResponse {
-        private String message;
-        
-        public ErrorResponse(String message) {
-            this.message = message;
-        }
-        
-        public String getMessage() {
-            return message;
-        }
-        
-        public void setMessage(String message) {
-            this.message = message;
+            return ResponseEntity.notFound().build();
         }
     }
 } 

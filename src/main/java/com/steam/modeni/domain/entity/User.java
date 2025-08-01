@@ -1,5 +1,8 @@
 package com.steam.modeni.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.steam.modeni.domain.enums.City;
+import com.steam.modeni.domain.enums.FamilyRole;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,13 +31,14 @@ public class User {
     
     private String name;
     
-    private String role;
+    @Enumerated(EnumType.STRING)
+    private FamilyRole role;
     
-    private String city;
+    // 기타 역할일 때 사용 (삼촌, 고모, 할머니 등)
+    private String customRole;
     
-    private String district;
-    
-    private String phoneNumber;
+    @Enumerated(EnumType.STRING)
+    private City city;
     
     private Integer age;
     
@@ -46,26 +50,34 @@ public class User {
     private LocalDateTime createdAt;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Answer> answers;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Reaction> reactions;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Diary> diaries;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<TestResult> testResults;
     
     @OneToMany(mappedBy = "user1", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Compatibility> compatibilities1;
     
     @OneToMany(mappedBy = "user2", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Compatibility> compatibilities2;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<MissionCheck> missionChecks;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Inquiry> inquiries;
 } 

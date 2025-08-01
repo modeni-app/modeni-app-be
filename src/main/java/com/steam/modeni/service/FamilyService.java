@@ -6,8 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -17,10 +15,9 @@ public class FamilyService {
     
     private final FamilyRepository familyRepository;
     
-    public Map<String, Object> createFamily(Map<String, String> request) {
+    public Family createFamily(String familyCode, String motto) {
         Family family = new Family();
         
-        String familyCode = request.get("family_code");
         if (familyCode == null || familyCode.trim().isEmpty()) {
             familyCode = generateFamilyCode();
         } else {
@@ -30,45 +27,26 @@ public class FamilyService {
         }
         
         family.setFamilyCode(familyCode);
-        family.setMotto(request.getOrDefault("motto", "우리 가족을 위한 새로운 시작!"));
+        family.setMotto(motto != null ? motto : "우리 가족을 위한 새로운 시작!");
         
-        Family savedFamily = familyRepository.save(family);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("id", savedFamily.getId());
-        response.put("family_code", savedFamily.getFamilyCode());
-        response.put("motto", savedFamily.getMotto());
-        response.put("message", "가족이 성공적으로 생성되었습니다.");
-        
-        return response;
+        return familyRepository.save(family);
     }
     
     @Transactional(readOnly = true)
-    public Map<String, Object> getFamilyById(Long id) {
-        Family family = familyRepository.findById(id)
+    public Family getFamilyById(Long id) {
+        return familyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("가족을 찾을 수 없습니다."));
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("id", family.getId());
-        response.put("family_code", family.getFamilyCode());
-        response.put("motto", family.getMotto());
-        
-        return response;
     }
     
-    public Map<String, String> updateFamily(Long id, Map<String, String> updates) {
+    public Family updateFamily(Long id, String motto) {
         Family family = familyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("가족을 찾을 수 없습니다."));
         
-        if (updates.containsKey("motto")) {
-            family.setMotto(updates.get("motto"));
+        if (motto != null) {
+            family.setMotto(motto);
         }
         
-        familyRepository.save(family);
-        
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "가족 정보가 성공적으로 수정되었습니다.");
-        return response;
+        return familyRepository.save(family);
     }
     
     private String generateFamilyCode() {
