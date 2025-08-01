@@ -40,7 +40,7 @@ public class QuestionController {
     }
     
     @GetMapping("/family/{familyCode}")
-    public ResponseEntity<List<Question>> getQuestionsForFamily(@PathVariable Long familyCode) {
+    public ResponseEntity<List<Question>> getQuestionsForFamily(@PathVariable String familyCode) {
         try {
             List<Question> questions = questionService.getQuestionsForFamily(familyCode);
             return ResponseEntity.ok(questions);
@@ -50,7 +50,7 @@ public class QuestionController {
     }
     
     @GetMapping("/answered/family/{familyCode}")
-    public ResponseEntity<Object> getAnsweredQuestionsByFamily(@PathVariable Long familyCode) {
+    public ResponseEntity<Object> getAnsweredQuestionsByFamily(@PathVariable String familyCode) {
         try {
             List<Question> questions = questionService.getAnsweredQuestionsByFamily(familyCode);
             return ResponseEntity.ok(questions);
@@ -73,10 +73,10 @@ public class QuestionController {
         }
     }
     
-    @GetMapping("/today/{familyId}")
-    public ResponseEntity<Question> getTodayQuestionForFamily(@PathVariable Long familyId) {
+    @GetMapping("/today/{familyCode}")
+    public ResponseEntity<Question> getTodayQuestionForFamily(@PathVariable String familyCode) {
         try {
-            Question question = dailyQuestionService.getTodayQuestionForFamily(familyId);
+            Question question = dailyQuestionService.getTodayQuestionForFamily(familyCode);
             if (question == null) {
                 return ResponseEntity.notFound().build();
             }

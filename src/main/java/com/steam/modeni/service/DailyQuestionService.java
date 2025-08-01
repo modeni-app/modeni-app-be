@@ -24,8 +24,8 @@ public class DailyQuestionService {
     private final QuestionRepository questionRepository;
     
     // 가족별 일일 질문을 저장하는 메모리 캐시
-    private final Map<Long, Question> familyDailyQuestions = new HashMap<>();
-    private final Map<Long, LocalDate> familyQuestionDates = new HashMap<>();
+    private final Map<String, Question> familyDailyQuestions = new HashMap<>();
+    private final Map<String, LocalDate> familyQuestionDates = new HashMap<>();
     
     /**
      * 특정 질문이 특정 가족의 오늘 질문인지 확인
@@ -79,22 +79,21 @@ public class DailyQuestionService {
         return null;
     }
     
-    /**
-     * 특정 가족을 위한 새로운 질문 선택
-     */
-    private void selectNewQuestionForFamily(Long familyCode) {
-        List<Question> allQuestions = questionRepository.findAllByOrderByIdAsc();
+    private void selectNewQuestionForFamily(String familyCode) {
+        List<Question> allQuestions = questionRepository.findAll();
         if (!allQuestions.isEmpty()) {
-            // 가족 코드를 기반으로 한 시드를 사용하여 같은 가족은 항상 같은 질문을 받도록 함
+            // 오늘 날짜
             LocalDate today = LocalDate.now();
-            long seed = familyCode * 1000L + today.toEpochDay();
+
+            // 시드: familyCode의 해시값 + 오늘 날짜를 기준으로 안정적인 Random 시드 생성
+            long seed = Math.abs(familyCode.hashCode()) * 1000L + today.toEpochDay();
             Random random = new Random(seed);
-            
+
             Question selectedQuestion = allQuestions.get(random.nextInt(allQuestions.size()));
-            
+
             familyDailyQuestions.put(familyCode, selectedQuestion);
             familyQuestionDates.put(familyCode, today);
-            
+
             System.out.println("🎯 가족 " + familyCode + "의 오늘 질문이 선택되었습니다: " + selectedQuestion.getContent());
         }
     }

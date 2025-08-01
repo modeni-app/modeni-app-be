@@ -27,7 +27,7 @@ public class UserController {
     }
     
     @GetMapping("/family/{familyCode}")
-    public ResponseEntity<List<UserResponse>> getUsersByFamilyCode(@PathVariable Long familyCode) {
+    public ResponseEntity<List<UserResponse>> getUsersByFamilyCode(@PathVariable String familyCode) {
         try {
             List<UserResponse> users = userService.getUsersByFamilyCode(familyCode);
             return ResponseEntity.ok(users);

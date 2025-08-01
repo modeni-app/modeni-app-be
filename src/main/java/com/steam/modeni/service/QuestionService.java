@@ -24,7 +24,7 @@ public class QuestionService {
     
     @Transactional(readOnly = true)
     public List<Question> getAllQuestions() {
-        return questionRepository.findAllByOrderByIdAsc();
+        return questionRepository.findAll();
     }
     
     @Transactional(readOnly = true)
@@ -38,10 +38,10 @@ public class QuestionService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         
-        Long familyCode = user.getFamilyCode();
+        String familyCode = user.getFamilyCode();
         
-        // 시스템 질문(familyCode = 0) + 해당 가족의 질문들 조회
-        List<Question> questions = questionRepository.findByFamilyCodeOrFamilyCode(0L, familyCode);
+        // 시스템 질문(familyCode = "SYSTEM") + 해당 가족의 질문들 조회
+        List<Question> questions = questionRepository.findByFamilyCodeOrFamilyCode("SYSTEM", familyCode);
         
         // 사용자 가입일 이후의 질문만 필터링
         return questions.stream()
@@ -52,70 +52,41 @@ public class QuestionService {
     
     @Transactional(readOnly = true)
     public List<Question> getQuestionsForFamily(String familyCode) {
-        // 시스템 질문(familyCode = 0) + 해당 가족의 질문들 조회
-        return questionRepository.findByFamilyCodeOrFamilyCode(0L, familyCode);
+        // 시스템 질문(familyCode = "SYSTEM") + 해당 가족의 질문들 조회
+        return questionRepository.findByFamilyCodeOrFamilyCode("SYSTEM", familyCode);
     }
     
     @Transactional(readOnly = true)
-    public List<Question> getAnsweredQuestionsByFamily(String familyCode) {
-        // 가족 구성원들이 답변한 질문들만 조회 (중복 제거)
-        List<Question> questions = answerRepository.findDistinctQuestionsByFamilyCode(familyCode);
-        
-        // familyCode를 실제 가족 코드로 변환하여 반환
-        return questions.stream()
-                .map(question -> convertQuestionForFamily(question, familyCode))
-                .collect(Collectors.toList());
-    }
-    
-    @Transactional(readOnly = true)
-    public List<Question> getAnsweredQuestionsByUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
-        
-        // 특정 사용자가 답변한 질문들만 조회 (중복 제거)
-        List<Question> questions = answerRepository.findDistinctQuestionsByUser(user);
-        
-        // familyCode를 실제 가족 코드로 변환하여 반환
-        return questions.stream()
-                .map(question -> convertQuestionForFamily(question, user.getFamilyCode()))
-                .collect(Collectors.toList());
-    }
-    
-    @Transactional(readOnly = true)
-    public Question getRandomQuestionForFamily(String familyCode) {
-        // 가족 구성원 조회
-        List<User> familyMembers = userRepository.findByFamilyCode(familyCode);
-        if (familyMembers.isEmpty()) {
-            throw new RuntimeException("가족 구성원을 찾을 수 없습니다.");
-        }
-        
+    public Question getRandomQuestionForFamily(Long familyId) {
         // 전체 질문 조회
-        List<Question> allQuestions = questionRepository.findAllByOrderByIdAsc();
+        List<Question> allQuestions = questionRepository.findAll();
         if (allQuestions.isEmpty()) {
             throw new RuntimeException("질문을 찾을 수 없습니다.");
         }
         
-        // 가족 구성원들이 답변하지 않은 질문들 필터링
-        List<Question> unansweredQuestions = allQuestions.stream()
-                .filter(question -> {
-                    // 이 질문에 대해 가족 구성원 중 누구도 답변하지 않았는지 확인
-                    return familyMembers.stream().noneMatch(user -> 
-                        answerRepository.existsByQuestionAndUser(question, user));
-                })
-                .collect(Collectors.toList());
-        
-        if (unansweredQuestions.isEmpty()) {
-            throw new RuntimeException("모든 질문에 대해 답변이 완료되었습니다.");
-        }
-        
-        // 랜덤하게 질문 선택
-        Random random = new Random();
-        return unansweredQuestions.get(random.nextInt(unansweredQuestions.size()));
+        // 가족 ID 기반으로 랜덤 질문 선택
+        Random random = new Random(familyId);
+        return allQuestions.get(random.nextInt(allQuestions.size()));
     }
     
     private Question convertQuestionForFamily(Question question, String familyCode) {
-        // familyCode를 실제 가족 코드로 변환
-        question.setFamilyCode(familyCode);
-        return question;
+        Question convertedQuestion = new Question();
+        convertedQuestion.setId(question.getId());
+        convertedQuestion.setContent(question.getContent());
+        convertedQuestion.setCreatedAt(question.getCreatedAt());
+        convertedQuestion.setFamilyCode(familyCode);
+        return convertedQuestion;
     }
-} 
+    
+    @Transactional(readOnly = true)
+    public List<Question> getAnsweredQuestionsByFamily(String familyCode) {
+        // 해당 가족의 답변이 있는 질문들 조회
+        return questionRepository.findQuestionsWithAnswersByFamilyCode(familyCode);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Question> getAnsweredQuestionsByUser(Long userId) {
+        // 해당 사용자가 답변한 질문들 조회
+        return questionRepository.findQuestionsWithAnswersByUserId(userId);
+    }
+}

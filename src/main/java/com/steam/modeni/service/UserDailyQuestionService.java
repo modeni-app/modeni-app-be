@@ -163,13 +163,13 @@ public class UserDailyQuestionService {
         int dayNumber = (int) ChronoUnit.DAYS.between(userJoinDate, questionDate) + 1;
         
         // 시스템 질문들 조회
-        List<Question> allQuestions = questionRepository.findByFamilyCode(0L);
+        List<Question> allQuestions = questionRepository.findByFamilyCode("SYSTEM");
         if (allQuestions.isEmpty()) {
             throw new RuntimeException("시스템 질문을 찾을 수 없습니다.");
         }
         
         // 가족 코드와 날짜를 기반으로 한 시드를 사용하여 같은 가족은 같은 질문을 받도록 함
-        long seed = user.getFamilyCode() * 1000L + questionDate.toEpochDay();
+        long seed = Math.abs(user.getFamilyCode().hashCode()) * 1000L + questionDate.toEpochDay();
         Random random = new Random(seed);
         
         Question selectedQuestion = allQuestions.get(random.nextInt(allQuestions.size()));

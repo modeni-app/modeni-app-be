@@ -55,7 +55,7 @@ public class UserDailyQuestionController {
      * 가족별 질문 이력 조회 (효율적 - 같은 가족은 동일한 질문을 받음)
      */
     @GetMapping("/history/family/{familyCode}")
-    public ResponseEntity<List<UserDailyQuestionResponse>> getQuestionHistoryForFamily(@PathVariable Long familyCode) {
+    public ResponseEntity<List<UserDailyQuestionResponse>> getQuestionHistoryForFamily(@PathVariable String familyCode) {
         try {
             List<UserDailyQuestion> history = userDailyQuestionService.getQuestionHistoryForFamily(familyCode);
             List<UserDailyQuestionResponse> responses = history.stream()
@@ -92,7 +92,7 @@ public class UserDailyQuestionController {
      */
     @GetMapping("/history/family/{familyCode}/range")
     public ResponseEntity<List<UserDailyQuestionResponse>> getQuestionHistoryForFamilyByDateRange(
-            @PathVariable Long familyCode,
+            @PathVariable String familyCode,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         try {
@@ -130,7 +130,7 @@ public class UserDailyQuestionController {
      * 가족의 누락된 질문들 생성 (가족 중 가장 먼저 가입한 사용자 기준)
      */
     @PostMapping("/generate-missing/family/{familyCode}")
-    public ResponseEntity<Map<String, Object>> generateMissingQuestionsForFamily(@PathVariable Long familyCode) {
+    public ResponseEntity<Map<String, Object>> generateMissingQuestionsForFamily(@PathVariable String familyCode) {
         try {
             userDailyQuestionService.generateMissingQuestionsForFamily(familyCode);
             

@@ -2,20 +2,20 @@ package com.steam.modeni.repository;
 
 import com.steam.modeni.domain.entity.Question;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface QuestionRepository extends JpaRepository<Question, string> {
-    List<Question> findAllByOrderByIdAsc();
-    
-    // 특정 가족 코드의 질문들 조회
+public interface QuestionRepository extends JpaRepository<Question, Long> {
     List<Question> findByFamilyCode(String familyCode);
+    List<Question> findByFamilyCodeOrFamilyCode(String familyCode1, String familyCode2);
     
-    // 시스템 질문 또는 특정 가족 질문 조회
-    List<Question> findByFamilyCodeOrFamilyCode(String systemFamilyCode, String familyCode);
+    @Query("SELECT DISTINCT q FROM Question q JOIN Answer a ON q.id = a.question.id JOIN User u ON a.user.id = u.id WHERE u.familyCode = :familyCode")
+    List<Question> findQuestionsWithAnswersByFamilyCode(@Param("familyCode") String familyCode);
     
-    // 가족 코드별로 정렬된 질문 조회
-    List<Question> findByFamilyCodeOrderByIdAsc(String familyCode);
+    @Query("SELECT DISTINCT q FROM Question q JOIN Answer a ON q.id = a.question.id WHERE a.user.id = :userId")
+    List<Question> findQuestionsWithAnswersByUserId(@Param("userId") Long userId);
 }

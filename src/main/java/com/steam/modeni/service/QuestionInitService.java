@@ -43,11 +43,11 @@ public class QuestionInitService implements ApplicationRunner {
             return;
         }
         
-        // 시스템 질문 생성 (familyCode = 0L)
+        // 시스템 질문 생성 (familyCode = "SYSTEM")
         for (int i = 0; i < INITIAL_QUESTIONS.size(); i++) {
             Question question = new Question();
             question.setContent(INITIAL_QUESTIONS.get(i));
-            question.setFamilyCode(0L); // 시스템 질문은 familyCode = 0L
+            question.setFamilyCode("SYSTEM"); // 시스템 질문은 familyCode = "SYSTEM"
             questionRepository.save(question);
         }
         

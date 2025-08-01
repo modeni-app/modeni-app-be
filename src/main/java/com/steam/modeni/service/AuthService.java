@@ -94,7 +94,7 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
         
-        Long familyCode = user.getFamilyCode();
+        String familyCode = user.getFamilyCode();
         return new GetFamilyCodeResponse(String.valueOf(familyCode), 
                 "가족 코드입니다. 다른 가족 구성원들에게 공유해주세요!");
     }
@@ -102,19 +102,19 @@ public class AuthService {
     private String generateFamilyCode() {
         String code;
         do {
-            code = System.currentTimeMillis() % 1000000L; // 6자리 숫자
+            code = String.valueOf(System.currentTimeMillis() % 1000000L); // 6자리 숫자 문자열
         } while (!userRepository.findByFamilyCode(code).isEmpty());
         return code;
     }
     
     private String parseFamilyCode(String familyCodeStr) {
-        // "FAM39685B" 형태를 Long으로 변환
-        // 숫자 부분만 추출하거나 해시 값으로 변환
-        String numericPart = familyCodeStr.replaceAll("[^0-9]", "");
-        if (numericPart.isEmpty()) {
-            // 숫자가 없으면 문자열 해시코드 사용
-            return Math.abs(familyCodeStr.hashCode()) % 1000000L;
-        }
-        return Long.parseLong(numericPart);
+    // "FAM39685B" 형태를 숫자 문자열로 변환
+    String numericPart = familyCodeStr.replaceAll("[^0-9]", "");
+    if (numericPart.isEmpty()) {
+        // 숫자가 없으면 해시코드를 양수로 만들어 6자리 문자열로 반환
+        int hashCode = Math.abs(familyCodeStr.hashCode()) % 1000000;
+        return String.format("%06d", hashCode); // 항상 6자리로 맞춤
     }
+    return numericPart;
+}
 }

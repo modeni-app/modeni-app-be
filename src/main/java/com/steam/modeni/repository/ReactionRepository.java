@@ -11,6 +11,7 @@ import java.util.Optional;
 
 @Repository
 public interface ReactionRepository extends JpaRepository<Reaction, Long> {
-    List<Reaction> findByAnswerOrderByCreatedAtAsc(Answer answer);
+    List<Reaction> findByAnswerId(Long answerId);
     Optional<Reaction> findByAnswerAndUser(Answer answer, User user);
-} 
+    List<Reaction> findByAnswerOrderByCreatedAtAsc(Answer answer);
+}

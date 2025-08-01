@@ -100,10 +100,10 @@ public class AnswerController {
         }
     }
     
-    @GetMapping("/today/{familyId}")
-    public ResponseEntity<List<AnswerResponse>> getTodayAnswersForFamily(@PathVariable Long familyId) {
+    @GetMapping("/today/{familyCode}")
+    public ResponseEntity<List<AnswerResponse>> getTodayAnswersForFamily(@PathVariable String familyCode) {
         try {
-            List<AnswerResponse> answers = answerService.getTodayAnswersForFamily(familyId);
+            List<AnswerResponse> answers = answerService.getTodayAnswersForFamily(familyCode);
             return ResponseEntity.ok(answers);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
