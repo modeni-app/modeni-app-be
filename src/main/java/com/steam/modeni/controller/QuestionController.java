@@ -7,7 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/questions")
@@ -24,6 +26,50 @@ public class QuestionController {
             return ResponseEntity.ok(questions);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Question>> getQuestionsForUser(@PathVariable Long userId) {
+        try {
+            List<Question> questions = questionService.getQuestionsForUser(userId);
+            return ResponseEntity.ok(questions);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @GetMapping("/family/{familyCode}")
+    public ResponseEntity<List<Question>> getQuestionsForFamily(@PathVariable Long familyCode) {
+        try {
+            List<Question> questions = questionService.getQuestionsForFamily(familyCode);
+            return ResponseEntity.ok(questions);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @GetMapping("/answered/family/{familyCode}")
+    public ResponseEntity<Object> getAnsweredQuestionsByFamily(@PathVariable Long familyCode) {
+        try {
+            List<Question> questions = questionService.getAnsweredQuestionsByFamily(familyCode);
+            return ResponseEntity.ok(questions);
+        } catch (RuntimeException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+    
+    @GetMapping("/answered/user/{userId}")
+    public ResponseEntity<Object> getAnsweredQuestionsByUser(@PathVariable Long userId) {
+        try {
+            List<Question> questions = questionService.getAnsweredQuestionsByUser(userId);
+            return ResponseEntity.ok(questions);
+        } catch (RuntimeException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
     

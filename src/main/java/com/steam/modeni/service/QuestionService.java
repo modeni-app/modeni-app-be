@@ -34,6 +34,44 @@ public class QuestionService {
     }
     
     @Transactional(readOnly = true)
+    public List<Question> getQuestionsForUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
+        Long familyCode = user.getFamilyCode();
+        
+        // 시스템 질문(familyCode = 0) + 해당 가족의 질문들 조회
+        List<Question> questions = questionRepository.findByFamilyCodeOrFamilyCode(0L, familyCode);
+        
+        // 사용자 가입일 이후의 질문만 필터링
+        return questions.stream()
+                .filter(question -> question.getCreatedAt().isAfter(user.getCreatedAt()) || 
+                                  question.getCreatedAt().isEqual(user.getCreatedAt()))
+                .collect(Collectors.toList());
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Question> getQuestionsForFamily(Long familyCode) {
+        // 시스템 질문(familyCode = 0) + 해당 가족의 질문들 조회
+        return questionRepository.findByFamilyCodeOrFamilyCode(0L, familyCode);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Question> getAnsweredQuestionsByFamily(Long familyCode) {
+        // 가족 구성원들이 답변한 질문들만 조회 (중복 제거)
+        return answerRepository.findDistinctQuestionsByFamilyCode(familyCode);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Question> getAnsweredQuestionsByUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
+        // 특정 사용자가 답변한 질문들만 조회 (중복 제거)
+        return answerRepository.findDistinctQuestionsByUser(user);
+    }
+    
+    @Transactional(readOnly = true)
     public Question getRandomQuestionForFamily(Long familyCode) {
         // 가족 구성원 조회
         List<User> familyMembers = userRepository.findByFamilyCode(familyCode);

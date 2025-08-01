@@ -69,14 +69,14 @@ public class ReactionService {
                 .orElseThrow(() -> new RuntimeException("반응을 찾을 수 없습니다."));
     }
     
-    public Map<String, String> deleteReaction(Long id) {
+    public Map<String, Object> deleteReaction(Long id) {
         Reaction reaction = reactionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("반응을 찾을 수 없습니다."));
+                .orElseThrow(() -> new RuntimeException("공감을 찾을 수 없습니다."));
         
         reactionRepository.delete(reaction);
         
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "반응이 성공적으로 취소되었습니다.");
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "공감이 성공적으로 삭제되었습니다.");
         return response;
     }
     

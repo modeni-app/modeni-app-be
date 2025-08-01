@@ -33,10 +33,17 @@ public class AnswerService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         
-        // 사용자의 가족에 대한 오늘의 질문인지 확인
+        // 요청 데이터 검증
+        if (content == null || content.trim().isEmpty()) {
+            throw new RuntimeException("답변 내용은 필수입니다.");
+        }
+        
+        // 사용자의 가족 코드 확인
         Long familyCode = user.getFamilyCode();
-        if (!dailyQuestionService.isQuestionForTodayAndFamily(question, familyCode)) {
-            throw new RuntimeException("오늘의 질문에만 답변할 수 있습니다.");
+        
+        // 질문이 시스템 질문이거나 사용자의 가족 질문인지 확인
+        if (question.getFamilyCode() != null && !question.getFamilyCode().equals(familyCode) && !question.getFamilyCode().equals(0L)) {
+            throw new RuntimeException("이 질문은 다른 가족의 질문입니다.");
         }
         
         // 이미 답변했는지 확인
@@ -67,25 +74,25 @@ public class AnswerService {
         return convertToAnswerResponse(answer);
     }
     
-    public Map<String, String> updateAnswer(Long id, String content) {
+    public Map<String, Object> updateAnswer(Long id, String content) {
         Answer answer = answerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("답변을 찾을 수 없습니다."));
         
         answer.setContent(content);
         answerRepository.save(answer);
         
-        Map<String, String> response = new HashMap<>();
+        Map<String, Object> response = new HashMap<>();
         response.put("message", "답변이 성공적으로 수정되었습니다.");
         return response;
     }
     
-    public Map<String, String> deleteAnswer(Long id) {
+    public Map<String, Object> deleteAnswer(Long id) {
         Answer answer = answerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("답변을 찾을 수 없습니다."));
         
         answerRepository.delete(answer);
         
-        Map<String, String> response = new HashMap<>();
+        Map<String, Object> response = new HashMap<>();
         response.put("message", "답변이 성공적으로 삭제되었습니다.");
         return response;
     }
