@@ -66,7 +66,17 @@ public class DailyQuestionService {
             familyQuestion = familyDailyQuestions.get(familyCode);
         }
         
-        return familyQuestion;
+        // 질문이 있다면 가족 코드를 실제 가족 코드로 설정하여 새 객체 반환
+        if (familyQuestion != null) {
+            Question responseQuestion = new Question();
+            responseQuestion.setId(familyQuestion.getId());
+            responseQuestion.setContent(familyQuestion.getContent());
+            responseQuestion.setFamilyCode(familyCode); // 실제 가족 코드로 설정
+            responseQuestion.setCreatedAt(familyQuestion.getCreatedAt());
+            return responseQuestion;
+        }
+        
+        return null;
     }
     
     /**

@@ -59,7 +59,12 @@ public class QuestionService {
     @Transactional(readOnly = true)
     public List<Question> getAnsweredQuestionsByFamily(Long familyCode) {
         // 가족 구성원들이 답변한 질문들만 조회 (중복 제거)
-        return answerRepository.findDistinctQuestionsByFamilyCode(familyCode);
+        List<Question> questions = answerRepository.findDistinctQuestionsByFamilyCode(familyCode);
+        
+        // familyCode를 실제 가족 코드로 변환하여 반환
+        return questions.stream()
+                .map(question -> convertQuestionForFamily(question, familyCode))
+                .collect(Collectors.toList());
     }
     
     @Transactional(readOnly = true)
@@ -68,7 +73,12 @@ public class QuestionService {
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         
         // 특정 사용자가 답변한 질문들만 조회 (중복 제거)
-        return answerRepository.findDistinctQuestionsByUser(user);
+        List<Question> questions = answerRepository.findDistinctQuestionsByUser(user);
+        
+        // familyCode를 실제 가족 코드로 변환하여 반환
+        return questions.stream()
+                .map(question -> convertQuestionForFamily(question, user.getFamilyCode()))
+                .collect(Collectors.toList());
     }
     
     @Transactional(readOnly = true)
@@ -101,5 +111,11 @@ public class QuestionService {
         // 랜덤하게 질문 선택
         Random random = new Random();
         return unansweredQuestions.get(random.nextInt(unansweredQuestions.size()));
+    }
+    
+    private Question convertQuestionForFamily(Question question, Long familyCode) {
+        // familyCode를 실제 가족 코드로 변환
+        question.setFamilyCode(familyCode);
+        return question;
     }
 } 
