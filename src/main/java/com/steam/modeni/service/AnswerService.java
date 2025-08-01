@@ -39,7 +39,7 @@ public class AnswerService {
         }
         
         // 사용자의 가족 코드 확인
-        Long familyCode = user.getFamilyCode();
+        String familyCode = user.getFamilyCode();
         
         // 질문이 시스템 질문이거나 사용자의 가족 질문인지 확인
         if (question.getFamilyCode() != null && !question.getFamilyCode().equals(familyCode) && !question.getFamilyCode().equals(0L)) {
@@ -109,7 +109,7 @@ public class AnswerService {
     }
     
     @Transactional(readOnly = true)
-    public List<AnswerResponse> getTodayAnswersForFamily(Long familyCode) {
+    public List<AnswerResponse> getTodayAnswersForFamily(String familyCode) {
         Question todayQuestion = dailyQuestionService.getTodayQuestionForFamily(familyCode);
         if (todayQuestion == null) {
             throw new RuntimeException("오늘의 질문을 찾을 수 없습니다.");

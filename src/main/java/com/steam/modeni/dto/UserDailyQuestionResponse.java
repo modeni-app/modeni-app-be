@@ -30,7 +30,7 @@ public class UserDailyQuestionResponse {
     public static class QuestionInfo {
         private Long questionId;
         private String content;
-        private Long familyCode;
+        private String familyCode;
         private LocalDateTime createdAt;
     }
 }

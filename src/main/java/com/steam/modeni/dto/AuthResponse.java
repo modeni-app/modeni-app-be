@@ -12,10 +12,10 @@ public class AuthResponse {
     private String type = "Bearer";
     private Long userId;
     private String userIdString;
-    private Long familyCode;
+    private String familyCode;
     private String message;
     
-    public AuthResponse(String token, Long userId, String userIdString, Long familyCode, String message) {
+    public AuthResponse(String token, Long userId, String userIdString, String familyCode, String message) {
         this.token = token;
         this.userId = userId;
         this.userIdString = userIdString;

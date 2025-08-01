@@ -73,7 +73,7 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
         
         // 가족 코드 유효성 확인
-        Long familyCode = request.getFamilyCode();
+        String familyCode = request.getFamilyCode();
         if (userRepository.findByFamilyCode(familyCode).isEmpty()) {
             throw new RuntimeException("존재하지 않는 가족 코드입니다.");
         }
@@ -99,21 +99,21 @@ public class AuthService {
                 "가족 코드입니다. 다른 가족 구성원들에게 공유해주세요!");
     }
     
-    private Long generateFamilyCode() {
-        Long code;
+    private String generateFamilyCode() {
+        String code;
         do {
             code = System.currentTimeMillis() % 1000000L; // 6자리 숫자
         } while (!userRepository.findByFamilyCode(code).isEmpty());
         return code;
     }
     
-    private Long parseFamilyCode(String familyCodeStr) {
+    private String parseFamilyCode(String familyCodeStr) {
         // "FAM39685B" 형태를 Long으로 변환
         // 숫자 부분만 추출하거나 해시 값으로 변환
         String numericPart = familyCodeStr.replaceAll("[^0-9]", "");
         if (numericPart.isEmpty()) {
             // 숫자가 없으면 문자열 해시코드 사용
-            return Math.abs((long) familyCodeStr.hashCode()) % 1000000L;
+            return Math.abs(familyCodeStr.hashCode()) % 1000000L;
         }
         return Long.parseLong(numericPart);
     }

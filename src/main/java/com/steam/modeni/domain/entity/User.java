@@ -34,7 +34,7 @@ public class User {
     private String region;
     
     @Column(name = "family_code")
-    private Long familyCode;
+    private String familyCode;
     
     @CreationTimestamp
     private LocalDateTime createdAt;

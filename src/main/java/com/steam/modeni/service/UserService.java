@@ -28,7 +28,7 @@ public class UserService {
     }
     
     @Transactional(readOnly = true)
-    public List<UserResponse> getUsersByFamilyCode(Long familyCode) {
+    public List<UserResponse> getUsersByFamilyCode(String familyCode) {
         List<User> users = userRepository.findByFamilyCode(familyCode);
         return users.stream()
                 .map(this::convertToUserResponse)

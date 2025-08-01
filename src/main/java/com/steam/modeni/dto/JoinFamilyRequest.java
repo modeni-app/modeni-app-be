@@ -9,5 +9,5 @@ import lombok.Setter;
 public class JoinFamilyRequest {
     
     @NotNull(message = "가족 코드는 필수입니다")
-    private Long familyCode;
+    private String familyCode;
 }

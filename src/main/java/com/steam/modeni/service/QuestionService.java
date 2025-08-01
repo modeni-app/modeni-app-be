@@ -51,13 +51,13 @@ public class QuestionService {
     }
     
     @Transactional(readOnly = true)
-    public List<Question> getQuestionsForFamily(Long familyCode) {
+    public List<Question> getQuestionsForFamily(String familyCode) {
         // 시스템 질문(familyCode = 0) + 해당 가족의 질문들 조회
         return questionRepository.findByFamilyCodeOrFamilyCode(0L, familyCode);
     }
     
     @Transactional(readOnly = true)
-    public List<Question> getAnsweredQuestionsByFamily(Long familyCode) {
+    public List<Question> getAnsweredQuestionsByFamily(String familyCode) {
         // 가족 구성원들이 답변한 질문들만 조회 (중복 제거)
         List<Question> questions = answerRepository.findDistinctQuestionsByFamilyCode(familyCode);
         
@@ -82,7 +82,7 @@ public class QuestionService {
     }
     
     @Transactional(readOnly = true)
-    public Question getRandomQuestionForFamily(Long familyCode) {
+    public Question getRandomQuestionForFamily(String familyCode) {
         // 가족 구성원 조회
         List<User> familyMembers = userRepository.findByFamilyCode(familyCode);
         if (familyMembers.isEmpty()) {
@@ -113,7 +113,7 @@ public class QuestionService {
         return unansweredQuestions.get(random.nextInt(unansweredQuestions.size()));
     }
     
-    private Question convertQuestionForFamily(Question question, Long familyCode) {
+    private Question convertQuestionForFamily(Question question, String familyCode) {
         // familyCode를 실제 가족 코드로 변환
         question.setFamilyCode(familyCode);
         return question;

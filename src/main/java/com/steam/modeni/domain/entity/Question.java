@@ -25,7 +25,7 @@ public class Question {
     private String content;
     
     @Column(name = "family_code")
-    private Long familyCode;
+    private String familyCode;
     
     @CreationTimestamp
     private LocalDateTime createdAt;

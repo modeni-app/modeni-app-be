@@ -14,6 +14,6 @@ public class UserResponse {
     private String role;
     private String region;
     private String age;
-    private Long familyCode;
+    private String familyCode;
     private LocalDateTime createdAt;
 }

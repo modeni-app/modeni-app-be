@@ -22,7 +22,7 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
     @Query("SELECT q FROM Question q WHERE q.id IN " +
            "(SELECT DISTINCT a.question.id FROM Answer a JOIN a.user u WHERE u.familyCode = :familyCode) " +
            "ORDER BY q.id DESC")
-    List<Question> findDistinctQuestionsByFamilyCode(@Param("familyCode") Long familyCode);
+    List<Question> findDistinctQuestionsByFamilyCode(@Param("familyCode") String familyCode);
     
     // 특정 사용자가 답변한 질문들을 중복 없이 조회 (MySQL 호환)
     @Query("SELECT q FROM Question q WHERE q.id IN " +
@@ -32,5 +32,5 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
     
     // 특정 가족의 특정 질문에 대한 모든 답변 조회
     @Query("SELECT a FROM Answer a JOIN a.user u WHERE a.question = :question AND u.familyCode = :familyCode ORDER BY a.createdAt ASC")
-    List<Answer> findByQuestionAndFamilyCode(@Param("question") Question question, @Param("familyCode") Long familyCode);
+    List<Answer> findByQuestionAndFamilyCode(@Param("question") Question question, @Param("familyCode") String familyCode);
 }

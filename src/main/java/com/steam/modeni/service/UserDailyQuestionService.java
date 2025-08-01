@@ -61,7 +61,7 @@ public class UserDailyQuestionService {
      * 가족별 질문 이력 조회 (같은 가족은 동일한 질문을 받으므로 효율적)
      */
     @Transactional
-    public List<UserDailyQuestion> getQuestionHistoryForFamily(Long familyCode) {
+    public List<UserDailyQuestion> getQuestionHistoryForFamily(String familyCode) {
         // 해당 가족의 첫 번째 사용자를 찾아서 그 사용자의 질문 이력을 조회
         List<User> familyMembers = userRepository.findByFamilyCode(familyCode);
         if (familyMembers.isEmpty()) {
@@ -84,7 +84,7 @@ public class UserDailyQuestionService {
      * 가족별 특정 기간 질문 이력 조회
      */
     @Transactional(readOnly = true)
-    public List<UserDailyQuestion> getQuestionHistoryForFamilyByDateRange(Long familyCode, 
+    public List<UserDailyQuestion> getQuestionHistoryForFamilyByDateRange(String familyCode, 
                                                                           LocalDate startDate, 
                                                                           LocalDate endDate) {
         List<User> familyMembers = userRepository.findByFamilyCode(familyCode);
@@ -116,7 +116,7 @@ public class UserDailyQuestionService {
     /**
      * 가족의 누락된 질문들 생성 (가족 중 가장 먼저 가입한 사용자 기준)
      */
-    public void generateMissingQuestionsForFamily(Long familyCode) {
+    public void generateMissingQuestionsForFamily(String familyCode) {
         List<User> familyMembers = userRepository.findByFamilyCode(familyCode);
         if (familyMembers.isEmpty()) {
             throw new RuntimeException("해당 가족을 찾을 수 없습니다.");

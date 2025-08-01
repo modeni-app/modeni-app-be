@@ -30,7 +30,7 @@ public class DailyQuestionService {
     /**
      * 특정 질문이 특정 가족의 오늘 질문인지 확인
      */
-    public boolean isQuestionForTodayAndFamily(Question question, Long familyCode) {
+    public boolean isQuestionForTodayAndFamily(Question question, String familyCode) {
         Question todayQuestion = getTodayQuestionForFamily(familyCode);
         return todayQuestion != null && todayQuestion.getId().equals(question.getId());
     }
@@ -38,7 +38,7 @@ public class DailyQuestionService {
     /**
      * 특정 가족의 오늘 질문 조회
      */
-    public Question getTodayQuestionForFamily(Long familyCode) {
+    public Question getTodayQuestionForFamily(String familyCode) {
         LocalDate today = LocalDate.now();
         LocalDateTime now = LocalDateTime.now();
         LocalTime currentTime = now.toLocalTime();

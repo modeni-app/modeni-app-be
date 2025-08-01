@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findByUserId(String userId);
     boolean existsByUserId(String userId);
-    List<User> findByFamilyCode(Long familyCode);
+    List<User> findByFamilyCode(String familyCode);
 }
