@@ -27,13 +27,12 @@ public class MissionCheck {
     @JoinColumn(name = "user_id")
     private User user;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "family_id")
-    private Family family;
+    @Column(name = "family_code")
+    private Long familyCode;
     
     @Column(columnDefinition = "TEXT")
     private String review;
     
     @CreationTimestamp
     private LocalDateTime createdAt;
-} 
+}

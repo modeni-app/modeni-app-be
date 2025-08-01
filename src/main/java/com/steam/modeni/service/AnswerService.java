@@ -120,7 +120,7 @@ public class AnswerService {
         AnswerResponse.UserInfo userInfo = new AnswerResponse.UserInfo(
                 answer.getUser().getId(),
                 answer.getUser().getName(),
-                answer.getUser().getUserId().toString()
+                answer.getUser().getUserId()
         );
         
         return new AnswerResponse(
