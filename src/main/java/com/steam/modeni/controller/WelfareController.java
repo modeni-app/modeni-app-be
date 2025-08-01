@@ -1,5 +1,6 @@
 package com.steam.modeni.controller;
 
+import com.steam.modeni.config.JwtUtil;
 import com.steam.modeni.domain.entity.User;
 import com.steam.modeni.dto.WelfareRecommendationResponse;
 import com.steam.modeni.service.UserService;
@@ -7,26 +8,39 @@ import com.steam.modeni.service.WelfareRecommendationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/welfare")
+@RequestMapping("/welfare")
 @RequiredArgsConstructor
 public class WelfareController {
 
     private final WelfareRecommendationService welfareRecommendationService;
     private final UserService userService;
+    private final JwtUtil jwtUtil;
+
+    private User getCurrentUser(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            if (jwtUtil.validateToken(token)) {
+                String username = jwtUtil.getUsernameFromToken(token);
+                return userService.findByUserId(username);
+            }
+        }
+        throw new RuntimeException("인증되지 않은 사용자입니다.");
+    }
 
     @GetMapping("/recommendations")
-    public ResponseEntity<?> getUserRecommendations(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> getUserRecommendations(HttpServletRequest request) {
         try {
-            User user = userService.findByUserId(userDetails.getUsername());
+            User user = getCurrentUser(request);
             List<WelfareRecommendationResponse> recommendations = 
                 welfareRecommendationService.getUserRecommendations(user);
             
@@ -41,9 +55,9 @@ public class WelfareController {
     }
 
     @GetMapping("/recommendations/unread")
-    public ResponseEntity<?> getUnreadRecommendations(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> getUnreadRecommendations(HttpServletRequest request) {
         try {
-            User user = userService.findByUserId(userDetails.getUsername());
+            User user = getCurrentUser(request);
             List<WelfareRecommendationResponse> recommendations = 
                 welfareRecommendationService.getUnreadRecommendations(user);
             
@@ -57,111 +71,70 @@ public class WelfareController {
         }
     }
 
-    @PostMapping("/recommendations/{id}/click")
-    public ResponseEntity<?> markAsClicked(@PathVariable Long id, 
-                                          @AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            User user = userService.findByUserId(userDetails.getUsername());
-            welfareRecommendationService.markAsClicked(id, user);
-            
-            return ResponseEntity.ok(Map.of(
-                "message", "클릭 기록이 저장되었습니다.",
-                "recommendationId", id
-            ));
-        } catch (Exception e) {
-            log.error("추천 클릭 처리 실패: {}", e.getMessage());
-            return ResponseEntity.badRequest().body("클릭 처리에 실패했습니다: " + e.getMessage());
-        }
-    }
-
-    @PostMapping("/recommendations/{id}/apply")
-    public ResponseEntity<?> markAsApplied(@PathVariable Long id, 
-                                          @AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            User user = userService.findByUserId(userDetails.getUsername());
-            welfareRecommendationService.markAsApplied(id, user);
-            
-            return ResponseEntity.ok(Map.of(
-                "message", "신청 기록이 저장되었습니다.",
-                "recommendationId", id
-            ));
-        } catch (Exception e) {
-            log.error("추천 신청 처리 실패: {}", e.getMessage());
-            return ResponseEntity.badRequest().body("신청 처리에 실패했습니다: " + e.getMessage());
-        }
-    }
+    // 클릭/신청 확인 기능 제거 - 간단한 복지 정보 제공에 집중
 
     @PostMapping("/analyze-emotion")
     public ResponseEntity<?> analyzeEmotionAndRecommend(@RequestBody Map<String, String> request,
-                                                       @AuthenticationPrincipal UserDetails userDetails) {
+                                                       HttpServletRequest httpRequest) {
         try {
             String emotionText = request.get("text");
             if (emotionText == null || emotionText.trim().isEmpty()) {
                 return ResponseEntity.badRequest().body("감정 텍스트가 필요합니다.");
             }
-            
-            User user = userService.findByUserId(userDetails.getUsername());
-            
-            // 비동기로 감정 분석 및 추천 처리
-            welfareRecommendationService.processEmotionAndRecommend(user, emotionText);
+
+            User user = getCurrentUser(httpRequest);
+            List<WelfareRecommendationResponse> recommendations = 
+                welfareRecommendationService.analyzeEmotionAndRecommend(user, emotionText);
             
             return ResponseEntity.ok(Map.of(
-                "message", "감정 분석 및 맞춤 복지 추천을 처리 중입니다. 잠시 후 추천 목록을 확인해주세요.",
-                "userId", user.getId()
+                "recommendations", recommendations,
+                "totalCount", recommendations.size(),
+                "message", "감정 분석 기반 추천이 완료되었습니다."
             ));
         } catch (Exception e) {
-            log.error("감정 분석 요청 처리 실패: {}", e.getMessage());
-            return ResponseEntity.badRequest().body("감정 분석 요청 처리에 실패했습니다: " + e.getMessage());
+            log.error("감정 분석 기반 추천 실패: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("감정 분석 기반 추천에 실패했습니다: " + e.getMessage());
         }
     }
 
     @PostMapping("/recommend-by-buttons")
     public ResponseEntity<?> recommendByButtons(@RequestBody Map<String, String> request,
-                                               @AuthenticationPrincipal UserDetails userDetails) {
+                                               HttpServletRequest httpRequest) {
         try {
-            String emotionKeyword = request.get("emotionKeyword");
-            String wishActivity = request.get("wishActivity");
+            String emotion = request.get("emotion");
+            String activity = request.get("activity");
             
-            if (emotionKeyword == null || emotionKeyword.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("감정 키워드가 필요합니다.");
+            if (emotion == null || emotion.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("감정 정보가 필요합니다.");
             }
-            if (wishActivity == null || wishActivity.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("희망 활동이 필요합니다.");
-            }
-            
-            User user = userService.findByUserId(userDetails.getUsername());
-            
-            // 비동기로 버튼 기반 추천 처리
-            welfareRecommendationService.processButtonBasedRecommend(user, emotionKeyword, wishActivity);
+
+            User user = getCurrentUser(httpRequest);
+            List<WelfareRecommendationResponse> recommendations = 
+                welfareRecommendationService.recommendByButtons(user, emotion, activity);
             
             return ResponseEntity.ok(Map.of(
-                "message", "버튼 기반 맞춤 복지 추천을 처리 중입니다. 잠시 후 추천 목록을 확인해주세요.",
-                "userId", user.getId(),
-                "emotionKeyword", emotionKeyword,
-                "wishActivity", wishActivity
+                "recommendations", recommendations,
+                "totalCount", recommendations.size(),
+                "message", "버튼 기반 추천이 완료되었습니다."
             ));
         } catch (Exception e) {
             log.error("버튼 기반 추천 요청 처리 실패: {}", e.getMessage());
-            return ResponseEntity.badRequest().body("버튼 기반 추천 요청 처리에 실패했습니다: " + e.getMessage());
+            return ResponseEntity.badRequest().body("버튼 기반 추천에 실패했습니다: " + e.getMessage());
         }
     }
 
     @GetMapping("/recommendations/{id}")
-    public ResponseEntity<?> getRecommendationDetail(@PathVariable Long id,
-                                                    @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> getRecommendationDetail(@PathVariable Long id, HttpServletRequest request) {
         try {
-            User user = userService.findByUserId(userDetails.getUsername());
-            List<WelfareRecommendationResponse> userRecommendations = 
-                welfareRecommendationService.getUserRecommendations(user);
+            User user = getCurrentUser(request);
+            WelfareRecommendationResponse recommendation = 
+                welfareRecommendationService.getRecommendationDetail(id, user);
             
-            WelfareRecommendationResponse recommendation = userRecommendations.stream()
-                    .filter(r -> r.getId().equals(id))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("해당 추천 정보를 찾을 수 없습니다."));
-            
-            return ResponseEntity.ok(recommendation);
+            return ResponseEntity.ok(Map.of(
+                "recommendation", recommendation
+            ));
         } catch (Exception e) {
-            log.error("추천 상세 정보 조회 실패: {}", e.getMessage());
+            log.error("추천 상세 조회 실패: {}", e.getMessage());
             return ResponseEntity.badRequest().body("추천 상세 정보를 가져올 수 없습니다: " + e.getMessage());
         }
     }
@@ -170,24 +143,16 @@ public class WelfareController {
     public ResponseEntity<?> searchPrograms(@RequestParam(required = false) String keyword,
                                            @RequestParam(required = false) String category,
                                            @RequestParam(required = false) Integer age,
-                                           @AuthenticationPrincipal UserDetails userDetails) {
+                                           HttpServletRequest request) {
         try {
-            User user = userService.findByUserId(userDetails.getUsername());
+            User user = getCurrentUser(request);
+            List<WelfareRecommendationResponse> programs = 
+                welfareRecommendationService.searchPrograms(user, keyword, category, age);
             
-            // 검색 조건을 기반으로 프로그램 검색 (테스트용)
-            Map<String, Object> searchResult = Map.of(
-                "message", "동작구 도서관 문화 프로그램 검색 결과",
-                "searchConditions", Map.of(
-                    "keyword", keyword != null ? keyword : "전체",
-                    "category", category != null ? category : "전체", 
-                    "age", age != null ? age : user.getAge(),
-                    "city", user.getRegion() != null ? user.getRegion().getDisplayName() : "서울시"
-                ),
-                "totalPrograms", "95개의 실제 동작구 도서관 프로그램 로드됨",
-                "availableCategories", List.of("문화", "교육", "독서", "영어", "과학", "요리", "놀이", "가족", "예술", "역사")
-            );
-            
-            return ResponseEntity.ok(searchResult);
+            return ResponseEntity.ok(Map.of(
+                "programs", programs,
+                "totalCount", programs.size()
+            ));
         } catch (Exception e) {
             log.error("프로그램 검색 실패: {}", e.getMessage());
             return ResponseEntity.badRequest().body("프로그램 검색에 실패했습니다: " + e.getMessage());
@@ -196,44 +161,78 @@ public class WelfareController {
 
     @PostMapping("/get-personalized-recommendations")
     public ResponseEntity<?> getPersonalizedRecommendations(@RequestBody Map<String, String> request,
-                                                            @AuthenticationPrincipal UserDetails userDetails) {
+                                                           HttpServletRequest httpRequest) {
         try {
-            String emotionKeyword = request.get("emotionKeyword");
-            String wishActivity = request.get("wishActivity");
+            String emotion = request.get("emotion");
+            String activity = request.get("activity");
+            String keyword = request.get("keyword");
             
-            if (emotionKeyword == null || emotionKeyword.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("감정 키워드가 필요합니다.");
-            }
-            if (wishActivity == null || wishActivity.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("희망 활동이 필요합니다.");
-            }
-            
-            User user = userService.findByUserId(userDetails.getUsername());
-            
-            // GPT 기반 개인화된 추천 이유 생성 옵션으로 추천 처리
-            welfareRecommendationService.processButtonBasedRecommend(user, emotionKeyword, wishActivity, true);
-            
-            // 성향 정보 유무에 따른 메시지 조정
-            String message;
-            String personalityInfo;
-            
-            // 성향 테스트 기능 비활성화 상태
-            message = "추천 카드를 생성 중입니다. GPT가 당신의 감정과 활동을 분석하여 추천 이유를 작성하고 있어요.";
-            personalityInfo = "미설정";
+            User user = getCurrentUser(httpRequest);
+            List<WelfareRecommendationResponse> recommendations = 
+                welfareRecommendationService.getPersonalizedRecommendations(user, emotion, activity, keyword);
             
             return ResponseEntity.ok(Map.of(
-                "message", message,
-                "userId", user.getId(),
-                "emotionKeyword", emotionKeyword,
-                "wishActivity", wishActivity,
-                "personalityType", personalityInfo,
-                "hasPersonalityType", null /* user.getPersonalityType() - 임시 비활성화 */ != null,
-                "recommendationMode", null /* user.getPersonalityType() - 임시 비활성화 */ != null ? "고도화된 성향 기반 추천" : "감정 & 활동 기반 추천",
-                "estimatedTime", "약 10-30초 후 추천 목록에서 확인 가능합니다."
+                "recommendations", recommendations,
+                "totalCount", recommendations.size(),
+                "message", "개인화된 추천이 완료되었습니다."
             ));
         } catch (Exception e) {
-            log.error("개인화된 추천 요청 처리 실패: {}", e.getMessage());
-            return ResponseEntity.badRequest().body("개인화된 추천 요청 처리에 실패했습니다: " + e.getMessage());
+            log.error("개인화된 추천 실패: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("개인화된 추천에 실패했습니다: " + e.getMessage());
+        }
+    }
+    
+    @PostMapping("/recommend-simple")
+    public ResponseEntity<?> getSimpleRecommendations(@RequestBody Map<String, String> request,
+                                                     HttpServletRequest httpRequest) {
+        try {
+            User user = getCurrentUser(httpRequest);
+            
+            // 간단한 복지 정보 카드 4개 생성
+            List<Map<String, Object>> welfareCards = new ArrayList<>();
+            
+            // 예시 데이터 (실제로는 DB에서 가져오거나 서비스를 통해 계산)
+            welfareCards.add(Map.of(
+                "id", 1,
+                "title", "청년 주거 안정 지원 사업",
+                "target", "만 19-34세 무주택 청년",
+                "location", "서울시 전역",
+                "link", "https://youth.seoul.go.kr/site/main/content/youth_housing"
+            ));
+            
+            welfareCards.add(Map.of(
+                "id", 2,
+                "title", "육아 종합 지원 서비스",
+                "target", "영유아 자녀를 둔 가정",
+                "location", "동작구 육아종합지원센터",
+                "link", "https://www.dreamstart.go.kr/dognak/"
+            ));
+            
+            welfareCards.add(Map.of(
+                "id", 3,
+                "title", "노인 건강 증진 프로그램",
+                "target", "만 65세 이상 어르신",
+                "location", "동작구 노인복지관",
+                "link", "https://www.dongjak.go.kr/portal/main/contents.do?menuNo=200731"
+            ));
+            
+            welfareCards.add(Map.of(
+                "id", 4,
+                "title", "취업 지원 교육 프로그램",
+                "target", "구직 중인 청년 및 중장년",
+                "location", "서울시 일자리센터",
+                "link", "https://job.seoul.go.kr/"
+            ));
+            
+            return ResponseEntity.ok(Map.of(
+                "welfareCards", welfareCards,
+                "totalCount", welfareCards.size(),
+                "message", "복지 정보 카드가 생성되었습니다."
+            ));
+            
+        } catch (Exception e) {
+            log.error("복지 정보 카드 생성 실패: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("복지 정보 카드 생성에 실패했습니다: " + e.getMessage());
         }
     }
 }

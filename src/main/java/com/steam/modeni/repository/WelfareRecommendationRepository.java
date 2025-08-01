@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface WelfareRecommendationRepository extends JpaRepository<WelfareRecommendation, Long> {
@@ -21,6 +22,9 @@ public interface WelfareRecommendationRepository extends JpaRepository<WelfareRe
     
     // 사용자별 미클릭 추천 목록
     List<WelfareRecommendation> findByUserAndIsClickedFalseOrderByRecommendationScoreDesc(User user);
+    
+    // 특정 ID와 사용자로 추천 조회 (추가)
+    Optional<WelfareRecommendation> findByIdAndUser(Long id, User user);
     
     // 사용자별 특정 기간 추천 목록
     @Query("SELECT wr FROM WelfareRecommendation wr WHERE wr.user = :user AND " +

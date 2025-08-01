@@ -346,9 +346,7 @@ public class WelfareRecommendationService {
 
     @Transactional(readOnly = true)
     public List<WelfareRecommendationResponse> getUserRecommendations(User user) {
-        List<WelfareRecommendation> recommendations = recommendationRepository
-                .findTop10ByUserOrderByCreatedAtDesc(user);
-        
+        List<WelfareRecommendation> recommendations = recommendationRepository.findByUserOrderByCreatedAtDesc(user);
         return recommendations.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
@@ -356,43 +354,59 @@ public class WelfareRecommendationService {
 
     @Transactional(readOnly = true)
     public List<WelfareRecommendationResponse> getUnreadRecommendations(User user) {
-        List<WelfareRecommendation> recommendations = recommendationRepository
-                .findByUserAndIsClickedFalseOrderByRecommendationScoreDesc(user);
-        
+        // 클릭 확인 기능 제거 - 모든 추천을 반환
+        List<WelfareRecommendation> recommendations = recommendationRepository.findByUserOrderByCreatedAtDesc(user);
         return recommendations.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
 
-    public void markAsClicked(Long recommendationId, User user) {
-        WelfareRecommendation recommendation = recommendationRepository.findById(recommendationId)
-                .orElseThrow(() -> new RuntimeException("추천 정보를 찾을 수 없습니다."));
+    // 컨트롤러에서 호출하는 메서드들 추가
+    public List<WelfareRecommendationResponse> analyzeEmotionAndRecommend(User user, String emotionText) {
+        // 감정 분석 및 추천 처리
+        processEmotionAndRecommend(user, emotionText);
         
-        if (!recommendation.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("권한이 없습니다.");
-        }
-        
-        recommendation.setIsClicked(true);
-        recommendation.setClickedAt(LocalDateTime.now());
-        recommendationRepository.save(recommendation);
+        // 임시로 빈 리스트 반환 (실제로는 추천 결과를 반환해야 함)
+        return new ArrayList<>();
     }
 
-    public void markAsApplied(Long recommendationId, User user) {
-        WelfareRecommendation recommendation = recommendationRepository.findById(recommendationId)
-                .orElseThrow(() -> new RuntimeException("추천 정보를 찾을 수 없습니다."));
+    public List<WelfareRecommendationResponse> recommendByButtons(User user, String emotion, String activity) {
+        // 버튼 기반 추천 처리
+        processButtonBasedRecommend(user, emotion, activity);
         
-        if (!recommendation.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("권한이 없습니다.");
-        }
-        
-        recommendation.setIsApplied(true);
-        recommendation.setAppliedAt(LocalDateTime.now());
-        if (!recommendation.getIsClicked()) {
-            recommendation.setIsClicked(true);
-            recommendation.setClickedAt(LocalDateTime.now());
-        }
-        recommendationRepository.save(recommendation);
+        // 임시로 빈 리스트 반환
+        return new ArrayList<>();
     }
+
+    public WelfareRecommendationResponse getRecommendationDetail(Long id, User user) {
+        WelfareRecommendation recommendation = recommendationRepository.findByIdAndUser(id, user)
+                .orElseThrow(() -> new RuntimeException("추천 정보를 찾을 수 없습니다."));
+        return convertToResponse(recommendation);
+    }
+
+    public List<WelfareRecommendationResponse> searchPrograms(User user, String keyword, String category, Integer age) {
+        // 프로그램 검색 로직 (임시 구현)
+        List<WelfareProgram> programs = welfareProgramRepository.findAll();
+        return programs.stream()
+                .map(program -> {
+                    WelfareRecommendationResponse response = new WelfareRecommendationResponse();
+                    response.setId(program.getId());
+                    response.setTitle(program.getTitle());
+                    response.setDescription(program.getDescription());
+                    return response;
+                })
+                .collect(Collectors.toList());
+    }
+
+    public List<WelfareRecommendationResponse> getPersonalizedRecommendations(User user, String emotion, String activity, String keyword) {
+        // 개인화된 추천 처리
+        processButtonBasedRecommend(user, emotion, activity);
+        
+        // 임시로 빈 리스트 반환
+        return new ArrayList<>();
+    }
+
+    // 클릭/신청 확인 기능 제거 - 간단한 복지 정보 제공에 집중
 
     private WelfareRecommendationResponse convertToResponse(WelfareRecommendation recommendation) {
         WelfareProgram program = recommendation.getWelfareProgram();
