@@ -24,7 +24,9 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/auth/**", "/", "/health", "/users/**", "/families/**", "/questions/**", "/answers/**", "/reactions/**").permitAll()
+                .requestMatchers("/auth/**", "/", "/health", "/users/**", "/families/**", 
+                               "/questions/**", "/answers/**", "/reactions/**",
+                               "/missions/**", "/mission-reviews/**", "/mission-review-reactions/**").permitAll()
                 .anyRequest().authenticated()
             );
         
