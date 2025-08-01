@@ -72,7 +72,8 @@ public class WelfareRecommendationService {
             log.info("사용자 {}의 버튼 기반 복지 추천 시작: 감정={}, 희망활동={}", user.getId(), emotionKeyword, wishActivity);
             
             // 버튼 기반 감정 분석 수행 (사용자 성향 고려)
-            EmotionAnalysisResult analysis = emotionAnalysisService.analyzeButtonBasedEmotion(emotionKeyword, wishActivity, user.getPersonalityType());
+            // TODO: PersonalityType 기능 임시 비활성화 - 프론트 개발 상황에 따라 추후 활성화
+        EmotionAnalysisResult analysis = emotionAnalysisService.analyzeButtonBasedEmotion(emotionKeyword, wishActivity, null /* user.getPersonalityType() */);
             
             // 추천 프로그램 찾기 (버튼 기반은 항상 추천 수행)
             List<WelfareProgram> recommendedPrograms = findRecommendedPrograms(user, analysis);
@@ -96,9 +97,10 @@ public class WelfareRecommendationService {
         List<WelfareProgram> allCandidates = new ArrayList<>();
         
         // 1. 지역 + 연령 기반 필터링
-        if (user.getCity() != null && user.getAge() != null) {
+        Integer userAge = parseAge(user.getAge());
+        if (user.getRegion() != null && userAge != null) {
             allCandidates.addAll(
-                welfareProgramRepository.findByCityAndAgeRange(user.getCity(), user.getAge())
+                welfareProgramRepository.findByCityAndAgeRange(user.getRegion(), userAge)
             );
         }
         
@@ -132,21 +134,25 @@ public class WelfareRecommendationService {
         double score = 0.0;
         
         // 성향 정보 유무에 따른 가중치 조정
-        boolean hasPersonality = (user.getPersonalityType() != null);
+        // TODO: PersonalityType 기능 임시 비활성화
+        boolean hasPersonality = false; // (user.getPersonalityType() != null);
         
         if (hasPersonality) {
             // 성향 정보가 있을 때: 더 정교한 매칭 (성향 가중치 증가)
-            log.debug("성향 정보 있음: {} - 정교한 매칭 적용", user.getPersonalityType().getNickname());
+            // TODO: PersonalityType 기능 임시 비활성화
+            // log.debug("성향 정보 있음: {} - 정교한 매칭 적용", user.getPersonalityType().getNickname());
+            log.debug("성향 정보 없음 - 기본 매칭 적용");
             
             // 지역 매칭 (25%)
-            if (program.getTargetCity() != null && program.getTargetCity().equals(user.getCity())) {
+            if (program.getTargetCity() != null && program.getTargetCity().equals(user.getRegion())) {
                 score += 0.25;
             }
             
             // 연령 매칭 (15%)
-            if (user.getAge() != null) {
-                if (program.getTargetAgeMin() == null || program.getTargetAgeMin() <= user.getAge()) {
-                    if (program.getTargetAgeMax() == null || program.getTargetAgeMax() >= user.getAge()) {
+            Integer userAge = parseAge(user.getAge());
+            if (userAge != null) {
+                if (program.getTargetAgeMin() == null || program.getTargetAgeMin() <= userAge) {
+                    if (program.getTargetAgeMax() == null || program.getTargetAgeMax() >= userAge) {
                         score += 0.15;
                     }
                 }
@@ -166,21 +172,23 @@ public class WelfareRecommendationService {
             }
             
             // 성향 매칭 (20%) - 성향이 있을 때 더 높은 가중치
-            score += calculatePersonalityScore(program, user.getPersonalityType()) * 1.33; // 0.15 -> 0.20
+            // TODO: PersonalityType 기능 임시 비활성화
+            // score += calculatePersonalityScore(program, user.getPersonalityType()) * 1.33; // 0.15 -> 0.20
             
         } else {
             // 성향 정보가 없을 때: 기본적인 매칭에 더 집중
             log.debug("성향 정보 없음 - 기본 매칭 적용");
             
             // 지역 매칭 (30%)
-            if (program.getTargetCity() != null && program.getTargetCity().equals(user.getCity())) {
+            if (program.getTargetCity() != null && program.getTargetCity().equals(user.getRegion())) {
                 score += 0.30;
             }
             
             // 연령 매칭 (20%)
-            if (user.getAge() != null) {
-                if (program.getTargetAgeMin() == null || program.getTargetAgeMin() <= user.getAge()) {
-                    if (program.getTargetAgeMax() == null || program.getTargetAgeMax() >= user.getAge()) {
+            Integer userAge = parseAge(user.getAge());
+            if (userAge != null) {
+                if (program.getTargetAgeMin() == null || program.getTargetAgeMin() <= userAge) {
+                    if (program.getTargetAgeMax() == null || program.getTargetAgeMax() >= userAge) {
                         score += 0.20;
                     }
                 }
@@ -203,7 +211,13 @@ public class WelfareRecommendationService {
         return Math.min(score, 1.0);
     }
     
+    // TODO: PersonalityType 기능 임시 비활성화 - 프론트 개발 상황에 따라 추후 활성화
     private double calculatePersonalityScore(WelfareProgram program, PersonalityType personalityType) {
+        // 임시로 null 체크 후 0.0 반환
+        if (personalityType == null) {
+            return 0.0;
+        }
+        
         String title = program.getTitle().toLowerCase();
         String description = program.getDescription() != null ? program.getDescription().toLowerCase() : "";
         String keywords = program.getEmotionKeywords() != null ? program.getEmotionKeywords().toLowerCase() : "";
@@ -254,6 +268,19 @@ public class WelfareRecommendationService {
     private boolean containsAny(String text, String... keywords) {
         return Arrays.stream(keywords).anyMatch(text::contains);
     }
+    
+    // Helper method: String age를 Integer로 변환
+    private Integer parseAge(String ageStr) {
+        if (ageStr == null || ageStr.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(ageStr.trim());
+        } catch (NumberFormatException e) {
+            log.warn("잘못된 age 형식: {}", ageStr);
+            return null;
+        }
+    }
 
     private void saveRecommendations(User user, List<WelfareProgram> programs, EmotionAnalysisResult analysis) {
         saveRecommendations(user, programs, analysis, false, null, null);
@@ -276,7 +303,8 @@ public class WelfareRecommendationService {
             
             // GPT 기반 개인화된 추천 이유 생성 (비동기로 처리)
             if (generateGptReason && emotionKeyword != null && wishActivity != null) {
-                generateAndUpdateGptReason(recommendation, emotionKeyword, wishActivity, user.getPersonalityType());
+                // TODO: PersonalityType 기능 임시 비활성화
+        generateAndUpdateGptReason(recommendation, emotionKeyword, wishActivity, null /* user.getPersonalityType() */);
             }
         }
     }
@@ -285,6 +313,7 @@ public class WelfareRecommendationService {
     private void generateAndUpdateGptReason(WelfareRecommendation recommendation, String emotionKeyword, 
                                           String wishActivity, PersonalityType personalityType) {
         try {
+            // TODO: PersonalityType 기능 임시 비활성화 - null이 올 수 있음
             String gptReason = emotionAnalysisService.generatePersonalizedRecommendationReason(
                 emotionKeyword, wishActivity, personalityType, recommendation.getWelfareProgram());
             

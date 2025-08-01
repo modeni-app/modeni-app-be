@@ -1,6 +1,7 @@
 package com.steam.modeni.service;
 
 import com.steam.modeni.domain.entity.User;
+import com.steam.modeni.domain.enums.Region;
 import com.steam.modeni.dto.UserResponse;
 import com.steam.modeni.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +44,14 @@ public class UserService {
             user.setRole((String) updates.get("role"));
         }
         if (updates.containsKey("region")) {
-            user.setRegion((String) updates.get("region"));
+            String regionString = (String) updates.get("region");
+            if (regionString != null && !regionString.trim().isEmpty()) {
+                try {
+                    user.setRegion(Region.valueOf(regionString.toUpperCase()));
+                } catch (IllegalArgumentException e) {
+                    throw new RuntimeException("지원하지 않는 지역입니다: " + regionString);
+                }
+            }
         }
         if (updates.containsKey("age")) {
             user.setAge((String) updates.get("age"));

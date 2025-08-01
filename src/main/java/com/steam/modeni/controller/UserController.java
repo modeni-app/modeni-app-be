@@ -64,7 +64,9 @@ public class UserController {
                 return ResponseEntity.badRequest().body("유효하지 않은 성향 타입입니다.");
             }
             
-            Map<String, String> response = userService.setPersonalityType(id, personalityType);
+            // TODO: PersonalityType 기능 임시 비활성화 - 프론트 개발 상황에 따라 추후 활성화
+            // Map<String, String> response = userService.setPersonalityType(id, personalityType);
+            Map<String, String> response = Map.of("message", "PersonalityType 기능이 임시 비활성화되었습니다.");
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();

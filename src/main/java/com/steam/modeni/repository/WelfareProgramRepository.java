@@ -1,7 +1,7 @@
 package com.steam.modeni.repository;
 
 import com.steam.modeni.domain.entity.WelfareProgram;
-import com.steam.modeni.domain.enums.City;
+import com.steam.modeni.domain.enums.Region;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,7 +16,7 @@ public interface WelfareProgramRepository extends JpaRepository<WelfareProgram, 
     List<WelfareProgram> findByIsActiveTrue();
     
     // 지역별 프로그램 조회
-    List<WelfareProgram> findByTargetCityAndIsActiveTrue(City city);
+    List<WelfareProgram> findByTargetCityAndIsActiveTrue(Region city);
     
     // 연령대별 프로그램 조회
     @Query("SELECT w FROM WelfareProgram w WHERE w.isActive = true AND " +
@@ -29,7 +29,7 @@ public interface WelfareProgramRepository extends JpaRepository<WelfareProgram, 
            "w.targetCity = :city AND " +
            "(w.targetAgeMin IS NULL OR w.targetAgeMin <= :age) AND " +
            "(w.targetAgeMax IS NULL OR w.targetAgeMax >= :age)")
-    List<WelfareProgram> findByCityAndAgeRange(@Param("city") City city, @Param("age") Integer age);
+    List<WelfareProgram> findByCityAndAgeRange(@Param("city") Region city, @Param("age") Integer age);
     
     // 감정 키워드로 검색
     @Query("SELECT w FROM WelfareProgram w WHERE w.isActive = true AND " +
@@ -45,7 +45,7 @@ public interface WelfareProgramRepository extends JpaRepository<WelfareProgram, 
            "(w.targetAgeMin IS NULL OR w.targetAgeMin <= :age) AND " +
            "(w.targetAgeMax IS NULL OR w.targetAgeMax >= :age) AND " +
            "w.emotionKeywords LIKE %:keyword%")
-    List<WelfareProgram> findByComplexCriteria(@Param("city") City city, 
+    List<WelfareProgram> findByComplexCriteria(@Param("city") Region city, 
                                               @Param("age") Integer age, 
                                               @Param("keyword") String keyword);
 }

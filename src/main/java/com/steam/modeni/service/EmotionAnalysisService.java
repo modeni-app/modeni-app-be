@@ -1,8 +1,6 @@
 package com.steam.modeni.service;
 
 import com.steam.modeni.dto.EmotionAnalysisResult;
-import com.steam.modeni.dto.OpenAiRequest;
-import com.steam.modeni.dto.OpenAiResponse;
 import com.steam.modeni.domain.entity.WelfareProgram;
 import com.steam.modeni.domain.enums.PersonalityType;
 import lombok.RequiredArgsConstructor;

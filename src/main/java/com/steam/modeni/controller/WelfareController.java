@@ -26,7 +26,7 @@ public class WelfareController {
     @GetMapping("/recommendations")
     public ResponseEntity<?> getUserRecommendations(@AuthenticationPrincipal UserDetails userDetails) {
         try {
-            User user = userService.findByUsername(userDetails.getUsername());
+            User user = userService.findByUserId(userDetails.getUsername());
             List<WelfareRecommendationResponse> recommendations = 
                 welfareRecommendationService.getUserRecommendations(user);
             
@@ -43,7 +43,7 @@ public class WelfareController {
     @GetMapping("/recommendations/unread")
     public ResponseEntity<?> getUnreadRecommendations(@AuthenticationPrincipal UserDetails userDetails) {
         try {
-            User user = userService.findByUsername(userDetails.getUsername());
+            User user = userService.findByUserId(userDetails.getUsername());
             List<WelfareRecommendationResponse> recommendations = 
                 welfareRecommendationService.getUnreadRecommendations(user);
             
@@ -61,7 +61,7 @@ public class WelfareController {
     public ResponseEntity<?> markAsClicked(@PathVariable Long id, 
                                           @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            User user = userService.findByUsername(userDetails.getUsername());
+            User user = userService.findByUserId(userDetails.getUsername());
             welfareRecommendationService.markAsClicked(id, user);
             
             return ResponseEntity.ok(Map.of(
@@ -78,7 +78,7 @@ public class WelfareController {
     public ResponseEntity<?> markAsApplied(@PathVariable Long id, 
                                           @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            User user = userService.findByUsername(userDetails.getUsername());
+            User user = userService.findByUserId(userDetails.getUsername());
             welfareRecommendationService.markAsApplied(id, user);
             
             return ResponseEntity.ok(Map.of(
@@ -100,7 +100,7 @@ public class WelfareController {
                 return ResponseEntity.badRequest().body("감정 텍스트가 필요합니다.");
             }
             
-            User user = userService.findByUsername(userDetails.getUsername());
+            User user = userService.findByUserId(userDetails.getUsername());
             
             // 비동기로 감정 분석 및 추천 처리
             welfareRecommendationService.processEmotionAndRecommend(user, emotionText);
@@ -129,7 +129,7 @@ public class WelfareController {
                 return ResponseEntity.badRequest().body("희망 활동이 필요합니다.");
             }
             
-            User user = userService.findByUsername(userDetails.getUsername());
+            User user = userService.findByUserId(userDetails.getUsername());
             
             // 비동기로 버튼 기반 추천 처리
             welfareRecommendationService.processButtonBasedRecommend(user, emotionKeyword, wishActivity);
@@ -150,7 +150,7 @@ public class WelfareController {
     public ResponseEntity<?> getRecommendationDetail(@PathVariable Long id,
                                                     @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            User user = userService.findByUsername(userDetails.getUsername());
+            User user = userService.findByUserId(userDetails.getUsername());
             List<WelfareRecommendationResponse> userRecommendations = 
                 welfareRecommendationService.getUserRecommendations(user);
             
@@ -172,7 +172,7 @@ public class WelfareController {
                                            @RequestParam(required = false) Integer age,
                                            @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            User user = userService.findByUsername(userDetails.getUsername());
+            User user = userService.findByUserId(userDetails.getUsername());
             
             // 검색 조건을 기반으로 프로그램 검색 (테스트용)
             Map<String, Object> searchResult = Map.of(
@@ -181,7 +181,7 @@ public class WelfareController {
                     "keyword", keyword != null ? keyword : "전체",
                     "category", category != null ? category : "전체", 
                     "age", age != null ? age : user.getAge(),
-                    "city", user.getCity() != null ? user.getCity().getDisplayName() : "서울시"
+                    "city", user.getRegion() != null ? user.getRegion().getDisplayName() : "서울시"
                 ),
                 "totalPrograms", "95개의 실제 동작구 도서관 프로그램 로드됨",
                 "availableCategories", List.of("문화", "교육", "독서", "영어", "과학", "요리", "놀이", "가족", "예술", "역사")
@@ -208,7 +208,7 @@ public class WelfareController {
                 return ResponseEntity.badRequest().body("희망 활동이 필요합니다.");
             }
             
-            User user = userService.findByUsername(userDetails.getUsername());
+            User user = userService.findByUserId(userDetails.getUsername());
             
             // GPT 기반 개인화된 추천 이유 생성 옵션으로 추천 처리
             welfareRecommendationService.processButtonBasedRecommend(user, emotionKeyword, wishActivity, true);
@@ -217,13 +217,9 @@ public class WelfareController {
             String message;
             String personalityInfo;
             
-            if (user.getPersonalityType() != null) {
-                message = "개인화된 추천 카드를 생성 중입니다. GPT가 당신의 성향과 감정을 분석하여 특별한 추천 이유를 작성하고 있어요.";
-                personalityInfo = user.getPersonalityType().getNickname() + " (" + user.getPersonalityType().getFullName() + ")";
-            } else {
-                message = "추천 카드를 생성 중입니다. GPT가 당신의 감정과 활동을 분석하여 추천 이유를 작성하고 있어요.";
-                personalityInfo = "미설정";
-            }
+            // 성향 테스트 기능 비활성화 상태
+            message = "추천 카드를 생성 중입니다. GPT가 당신의 감정과 활동을 분석하여 추천 이유를 작성하고 있어요.";
+            personalityInfo = "미설정";
             
             return ResponseEntity.ok(Map.of(
                 "message", message,
@@ -231,8 +227,8 @@ public class WelfareController {
                 "emotionKeyword", emotionKeyword,
                 "wishActivity", wishActivity,
                 "personalityType", personalityInfo,
-                "hasPersonalityType", user.getPersonalityType() != null,
-                "recommendationMode", user.getPersonalityType() != null ? "고도화된 성향 기반 추천" : "감정 & 활동 기반 추천",
+                "hasPersonalityType", null /* user.getPersonalityType() - 임시 비활성화 */ != null,
+                "recommendationMode", null /* user.getPersonalityType() - 임시 비활성화 */ != null ? "고도화된 성향 기반 추천" : "감정 & 활동 기반 추천",
                 "estimatedTime", "약 10-30초 후 추천 목록에서 확인 가능합니다."
             ));
         } catch (Exception e) {

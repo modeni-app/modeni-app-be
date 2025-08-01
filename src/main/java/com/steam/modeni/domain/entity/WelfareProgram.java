@@ -1,6 +1,6 @@
 package com.steam.modeni.domain.entity;
 
-import com.steam.modeni.domain.enums.City;
+import com.steam.modeni.domain.enums.Region;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,7 +34,7 @@ public class WelfareProgram {
     private String category; // 카테고리 (문화, 교육, 상담, 취업, 의료 등)
     
     @Enumerated(EnumType.STRING)
-    private City targetCity; // 대상 지역
+    private Region targetCity; // 대상 지역
     
     @Column(name = "target_age_min")
     private Integer targetAgeMin; // 최소 연령

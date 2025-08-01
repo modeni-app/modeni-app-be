@@ -32,7 +32,7 @@ public class DiaryController {
     public ResponseEntity<?> createDiary(@RequestBody DiaryRequest request,
                                         @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            User user = userService.findByUsername(userDetails.getUsername());
+            User user = userService.findByUserId(userDetails.getUsername());
             Diary diary = diaryService.createDiary(user, request);
             
             return ResponseEntity.ok(Map.of(
@@ -49,7 +49,7 @@ public class DiaryController {
     @GetMapping
     public ResponseEntity<?> getUserDiaries(@AuthenticationPrincipal UserDetails userDetails) {
         try {
-            User user = userService.findByUsername(userDetails.getUsername());
+            User user = userService.findByUserId(userDetails.getUsername());
             List<Diary> diaries = diaryService.getUserDiaries(user);
             
             return ResponseEntity.ok(Map.of(
@@ -65,7 +65,7 @@ public class DiaryController {
     @GetMapping("/today")
     public ResponseEntity<?> getTodayDiary(@AuthenticationPrincipal UserDetails userDetails) {
         try {
-            User user = userService.findByUsername(userDetails.getUsername());
+            User user = userService.findByUserId(userDetails.getUsername());
             Optional<Diary> todayDiary = diaryService.getTodayDiary(user);
             
             return ResponseEntity.ok(Map.of(
@@ -83,7 +83,7 @@ public class DiaryController {
                                                   @RequestParam String endDate,
                                                   @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            User user = userService.findByUsername(userDetails.getUsername());
+            User user = userService.findByUserId(userDetails.getUsername());
             
             LocalDateTime start = LocalDate.parse(startDate).atStartOfDay();
             LocalDateTime end = LocalDate.parse(endDate).atTime(LocalTime.MAX);
@@ -107,7 +107,7 @@ public class DiaryController {
                                         @RequestBody DiaryRequest request,
                                         @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            User user = userService.findByUsername(userDetails.getUsername());
+            User user = userService.findByUserId(userDetails.getUsername());
             Diary updatedDiary = diaryService.updateDiary(id, user, request);
             
             return ResponseEntity.ok(Map.of(
@@ -124,7 +124,7 @@ public class DiaryController {
     public ResponseEntity<?> deleteDiary(@PathVariable Long id,
                                         @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            User user = userService.findByUsername(userDetails.getUsername());
+            User user = userService.findByUserId(userDetails.getUsername());
             diaryService.deleteDiary(id, user);
             
             return ResponseEntity.ok(Map.of(
@@ -141,7 +141,7 @@ public class DiaryController {
     public ResponseEntity<?> searchDiariesByEmotion(@RequestParam String emotion,
                                                    @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            User user = userService.findByUsername(userDetails.getUsername());
+            User user = userService.findByUserId(userDetails.getUsername());
             List<Diary> diaries = diaryService.searchDiariesByEmotion(user, emotion);
             
             return ResponseEntity.ok(Map.of(

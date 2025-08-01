@@ -34,7 +34,14 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setName(request.getUsername()); // JSON의 username을 User의 name에 매핑
         user.setRole(request.getRole());
-        user.setRegion(request.getRegion());
+        // Region enum으로 변환
+        if (request.getRegion() != null && !request.getRegion().trim().isEmpty()) {
+            try {
+                user.setRegion(Region.valueOf(request.getRegion().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("지원하지 않는 지역입니다: " + request.getRegion());
+            }
+        }
         user.setAge(request.getAge());
         
         // 가족 코드 처리

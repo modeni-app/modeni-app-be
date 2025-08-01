@@ -1,7 +1,7 @@
 package com.steam.modeni.service;
 
 import com.steam.modeni.domain.entity.WelfareProgram;
-import com.steam.modeni.domain.enums.City;
+import com.steam.modeni.domain.enums.Region;
 import com.steam.modeni.repository.WelfareProgramRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +75,7 @@ public class CsvDataLoaderService {
             program.setDescription(generateDescription(target, location, schedule));
             program.setOrganization("동작구립도서관");
             program.setCategory("문화");
-            program.setTargetCity(City.SEOUL);
+            program.setTargetCity(Region.SEOUL);
             
             // 대상 연령 파싱
             setTargetAge(program, target);
