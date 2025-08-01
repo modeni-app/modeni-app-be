@@ -1,6 +1,7 @@
 package com.steam.modeni.service;
 
 import com.steam.modeni.domain.entity.User;
+import com.steam.modeni.domain.enums.PersonalityType;
 import com.steam.modeni.dto.UserResponse;
 import com.steam.modeni.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,12 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         
         return convertToUserResponse(user);
+    }
+    
+    @Transactional(readOnly = true)
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
     }
     
     public Map<String, String> updateUser(Long id, Map<String, Object> updates) {
@@ -60,6 +67,21 @@ public class UserService {
         return response;
     }
     
+    public Map<String, String> setPersonalityType(Long id, PersonalityType personalityType) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
+        user.setPersonalityType(personalityType);
+        userRepository.save(user);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "성향이 성공적으로 설정되었습니다.");
+        response.put("personalityType", personalityType.name());
+        response.put("personalityName", personalityType.getFullName());
+        response.put("personalityNickname", personalityType.getNickname());
+        return response;
+    }
+    
     private UserResponse convertToUserResponse(User user) {
         UserResponse response = new UserResponse();
         response.setId(user.getId());
@@ -69,6 +91,7 @@ public class UserService {
         response.setCustomRole(user.getCustomRole());
         response.setCity(user.getCity());
         response.setAge(user.getAge());
+        response.setPersonalityType(user.getPersonalityType());
         response.setCreatedAt(user.getCreatedAt());
         
         if (user.getFamily() != null) {

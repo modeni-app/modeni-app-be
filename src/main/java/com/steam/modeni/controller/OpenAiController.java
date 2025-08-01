@@ -1,5 +1,6 @@
 package com.steam.modeni.controller;
 
+import com.steam.modeni.config.OpenAiConfig;
 import com.steam.modeni.dto.ChatRequest;
 import com.steam.modeni.dto.OpenAiResponse;
 import com.steam.modeni.service.OpenAiService;
@@ -8,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/openai")
@@ -15,6 +18,19 @@ import org.springframework.web.bind.annotation.*;
 public class OpenAiController {
 
     private final OpenAiService openAiService;
+    private final OpenAiConfig openAiConfig;
+
+    @GetMapping("/config")
+    public ResponseEntity<?> checkConfig() {
+        String apiKey = openAiConfig.getApiKey();
+        boolean isConfigured = apiKey != null && !apiKey.equals("test-key-placeholder");
+        
+        return ResponseEntity.ok(Map.of(
+            "apiKeyConfigured", isConfigured,
+            "apiKeyLength", apiKey != null ? apiKey.length() : 0,
+            "apiKeyPrefix", apiKey != null && apiKey.length() > 8 ? apiKey.substring(0, 8) + "..." : "N/A"
+        ));
+    }
 
     @PostMapping("/chat")
     public ResponseEntity<?> generateChatCompletion(@RequestBody ChatRequest request) {

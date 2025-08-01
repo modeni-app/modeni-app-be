@@ -3,6 +3,7 @@ package com.steam.modeni.domain.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.steam.modeni.domain.enums.City;
 import com.steam.modeni.domain.enums.FamilyRole;
+import com.steam.modeni.domain.enums.PersonalityType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,6 +42,9 @@ public class User {
     private City city;
     
     private Integer age;
+    
+    @Enumerated(EnumType.STRING)
+    private PersonalityType personalityType;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "family_id")
