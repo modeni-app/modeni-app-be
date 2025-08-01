@@ -2,6 +2,7 @@ package com.steam.modeni.service;
 
 import com.steam.modeni.config.JwtUtil;
 import com.steam.modeni.domain.entity.User;
+import com.steam.modeni.domain.enums.Region;
 import com.steam.modeni.dto.AuthResponse;
 import com.steam.modeni.dto.GetFamilyCodeResponse;
 import com.steam.modeni.dto.JoinFamilyRequest;
@@ -39,7 +40,14 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setName(request.getUsername()); // JSON의 username을 User의 name에 매핑
         user.setRole(request.getRole());
-        user.setRegion(request.getRegion());
+        // Region enum으로 변환 (displayName 기준)
+        if (request.getRegion() != null && !request.getRegion().trim().isEmpty()) {
+            try {
+                user.setRegion(Region.fromDisplayName(request.getRegion()));
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException(e.getMessage());
+            }
+        }
         user.setAge(request.getAge());
         
         // 프론트에서 받은 familyCode를 그대로 저장

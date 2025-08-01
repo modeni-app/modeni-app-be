@@ -1,6 +1,7 @@
 package com.steam.modeni.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.steam.modeni.domain.enums.Region;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,15 +32,16 @@ public class User {
     
     private String role;
     
-    private String region;
+    @Enumerated(EnumType.STRING)
+    private Region region;
+    
+    private String age;
     
     @Column(name = "family_code")
     private String familyCode;
     
     @CreationTimestamp
     private LocalDateTime createdAt;
-    
-    private String age;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore

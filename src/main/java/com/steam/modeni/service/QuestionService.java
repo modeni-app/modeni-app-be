@@ -1,17 +1,13 @@
 package com.steam.modeni.service;
 
 import com.steam.modeni.domain.entity.Question;
-import com.steam.modeni.domain.entity.User;
-import com.steam.modeni.repository.AnswerRepository;
 import com.steam.modeni.repository.QuestionRepository;
-import com.steam.modeni.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,8 +15,6 @@ import java.util.stream.Collectors;
 public class QuestionService {
     
     private final QuestionRepository questionRepository;
-    private final UserRepository userRepository;
-    private final AnswerRepository answerRepository;
     
     @Transactional(readOnly = true)
     public List<Question> getAllQuestions() {

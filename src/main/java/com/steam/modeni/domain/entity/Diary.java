@@ -1,5 +1,6 @@
 package com.steam.modeni.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -7,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "diaries")
@@ -32,4 +34,9 @@ public class Diary {
     
     @CreationTimestamp
     private LocalDateTime createdAt;
-} 
+    
+    // 일기에 달린 리액션들
+    @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Reaction> reactions;
+}

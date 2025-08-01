@@ -1,6 +1,7 @@
 package com.steam.modeni.service;
 
 import com.steam.modeni.domain.entity.User;
+import com.steam.modeni.domain.enums.Region;
 import com.steam.modeni.dto.UserResponse;
 import com.steam.modeni.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,12 @@ public class UserService {
         return convertToUserResponse(user);
     }
     
+    @Transactional(readOnly = true)
+    public User findByUserId(String userId) {
+        return userRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+    }
+    
     public Map<String, String> updateUser(Long id, Map<String, Object> updates) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
@@ -55,7 +62,14 @@ public class UserService {
             user.setRole((String) updates.get("role"));
         }
         if (updates.containsKey("region")) {
-            user.setRegion((String) updates.get("region"));
+            String regionString = (String) updates.get("region");
+            if (regionString != null && !regionString.trim().isEmpty()) {
+                try {
+                    user.setRegion(Region.fromDisplayName(regionString));
+                } catch (IllegalArgumentException e) {
+                    throw new RuntimeException(e.getMessage());
+                }
+            }
         }
         if (updates.containsKey("age")) {
             user.setAge((String) updates.get("age"));
@@ -79,6 +93,7 @@ public class UserService {
         return response;
     }
     
+
     private UserResponse convertToUserResponse(User user) {
         UserResponse response = new UserResponse();
         response.setId(user.getId());

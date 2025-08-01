@@ -1,5 +1,6 @@
 package com.steam.modeni.dto;
 
+import com.steam.modeni.domain.enums.Region;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,7 +13,7 @@ public class UserResponse {
     private String name;
     private String userId;
     private String role;
-    private String region;
+    private Region region;
     private String age;
     private String familyCode;
     private LocalDateTime createdAt;
