@@ -61,4 +61,18 @@ public enum Region {
     public String getDisplayName() {
         return displayName;
     }
+    
+    // displayName으로 Region 찾기
+    public static Region fromDisplayName(String displayName) {
+        if (displayName == null || displayName.trim().isEmpty()) {
+            return null;
+        }
+        
+        for (Region region : Region.values()) {
+            if (region.getDisplayName().equals(displayName.trim())) {
+                return region;
+            }
+        }
+        throw new IllegalArgumentException("지원하지 않는 지역입니다: " + displayName);
+    }
 }

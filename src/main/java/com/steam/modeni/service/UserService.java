@@ -47,9 +47,9 @@ public class UserService {
             String regionString = (String) updates.get("region");
             if (regionString != null && !regionString.trim().isEmpty()) {
                 try {
-                    user.setRegion(Region.valueOf(regionString.toUpperCase()));
+                    user.setRegion(Region.fromDisplayName(regionString));
                 } catch (IllegalArgumentException e) {
-                    throw new RuntimeException("지원하지 않는 지역입니다: " + regionString);
+                    throw new RuntimeException(e.getMessage());
                 }
             }
         }
