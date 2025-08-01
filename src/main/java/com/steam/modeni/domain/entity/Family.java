@@ -24,7 +24,7 @@ public class Family {
     @Column(columnDefinition = "TEXT")
     private String motto;
     
-    @OneToMany(mappedBy = "family", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "family", fetch = FetchType.LAZY)
     private List<User> users;
     
     @OneToMany(mappedBy = "family", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

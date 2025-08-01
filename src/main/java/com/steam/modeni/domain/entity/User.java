@@ -1,6 +1,5 @@
 package com.steam.modeni.domain.entity;
 
-import com.steam.modeni.domain.enums.Gender;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,9 +28,6 @@ public class User {
     
     private String name;
     
-    @Enumerated(EnumType.STRING)
-    private Gender gender;
-    
     private String role;
     
     private String city;
@@ -39,6 +35,8 @@ public class User {
     private String district;
     
     private String phoneNumber;
+    
+    private Integer age;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "family_id")
