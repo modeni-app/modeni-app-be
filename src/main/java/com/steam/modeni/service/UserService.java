@@ -35,6 +35,13 @@ public class UserService {
                 .map(this::convertToUserResponse)
                 .collect(Collectors.toList());
     }
+
+    @Transactional(readOnly = true)
+public User findByUserId(String userId) {
+    return userRepository.findByUserId(userId)
+            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+}
+
     
     @Transactional(readOnly = true)
     public UserResponse getUserById(Long id) {
