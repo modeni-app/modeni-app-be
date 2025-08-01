@@ -1,5 +1,9 @@
 package com.steam.modeni.domain.enums;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public enum Region {
     // 특별시/광역시
     SEOUL("서울시"),
@@ -60,6 +64,13 @@ public enum Region {
 
     public String getDisplayName() {
         return displayName;
+    }
+    
+    // 모든 지역명 반환
+    public static List<String> getAllRegionNames() {
+        return Arrays.stream(Region.values())
+                .map(Region::getDisplayName)
+                .collect(Collectors.toList());
     }
     
     // displayName으로 Region 찾기

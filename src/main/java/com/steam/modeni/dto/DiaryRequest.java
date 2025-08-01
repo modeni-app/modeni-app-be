@@ -1,10 +1,43 @@
 package com.steam.modeni.dto;
 
 import lombok.Data;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
+import java.util.List;
 
 @Data
 public class DiaryRequest {
-    private String content; // 선택사항 (텍스트 입력 고려하지 않음)
-    private String emotionKeyword; // 버튼 선택: 행복, 뿌듯함, 즐거움, 설렘, 여유로움, 활기참, 안도감, 차분함, 기특함, 서운함, 불안함, 짜증남, 초조함, 실망, 후회, 우울함, 슬픔, 지침, 답답함
-    private String wishActivity; // 버튼 선택: 산책하기, 요리하기, 청소하기, 독서하기, 그림그리기, 노래부르기, 카페가기, 일기쓰기, 운동하기, 사진찍기, 꽃구경, 잠자기, 영화보기, 맛집가기, 장보기, 음악듣기, 게임하기
+    private String content; // 선택사항 (텍스트 입력)
+    
+    // 감정 키워드 복수 선택 (최대 3개)
+    @NotEmpty(message = "감정을 최소 1개 이상 선택해주세요.")
+    @Size(max = 3, message = "감정은 최대 3개까지 선택 가능합니다.")
+    private List<String> emotionKeywords; // ["행복", "뿌듯함", "즐거움"]
+    
+    // 희망활동 복수 선택 (최대 2개)
+    @NotEmpty(message = "희망활동을 최소 1개 이상 선택해주세요.")
+    @Size(max = 2, message = "희망활동은 최대 2개까지 선택 가능합니다.")
+    private List<String> wishActivities; // ["산책하기", "요리하기"]
+    
+    // === 하위 호환성을 위한 단일 값 지원 (Deprecated) ===
+    
+    @Deprecated
+    public String getEmotionKeyword() {
+        return emotionKeywords != null && !emotionKeywords.isEmpty() ? emotionKeywords.get(0) : null;
+    }
+    
+    @Deprecated
+    public void setEmotionKeyword(String emotionKeyword) {
+        this.emotionKeywords = emotionKeyword != null ? List.of(emotionKeyword) : null;
+    }
+    
+    @Deprecated
+    public String getWishActivity() {
+        return wishActivities != null && !wishActivities.isEmpty() ? wishActivities.get(0) : null;
+    }
+    
+    @Deprecated
+    public void setWishActivity(String wishActivity) {
+        this.wishActivities = wishActivity != null ? List.of(wishActivity) : null;
+    }
 }

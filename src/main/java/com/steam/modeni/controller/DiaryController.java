@@ -2,8 +2,12 @@ package com.steam.modeni.controller;
 
 import com.steam.modeni.domain.entity.Diary;
 import com.steam.modeni.domain.entity.User;
+import com.steam.modeni.domain.enums.ReactionType;
 import com.steam.modeni.dto.DiaryRequest;
+import com.steam.modeni.dto.ReactionRequest;
+import com.steam.modeni.dto.ReactionResponse;
 import com.steam.modeni.service.DiaryService;
+import com.steam.modeni.service.ReactionService;
 import com.steam.modeni.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,12 +25,13 @@ import java.util.Optional;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/diary")
+@RequestMapping("/diary")
 @RequiredArgsConstructor
 public class DiaryController {
 
     private final DiaryService diaryService;
     private final UserService userService;
+    private final ReactionService reactionService;
 
     @PostMapping
     public ResponseEntity<?> createDiary(@RequestBody DiaryRequest request,
@@ -152,6 +157,109 @@ public class DiaryController {
         } catch (Exception e) {
             log.error("감정별 일기 검색 실패: {}", e.getMessage());
             return ResponseEntity.badRequest().body("감정별 일기 검색에 실패했습니다: " + e.getMessage());
+        }
+    }
+
+    // ===== 가족 공유 기능 =====
+
+    @GetMapping("/family")
+    public ResponseEntity<?> getFamilyDiaries(@RequestParam String userId) {
+        try {
+            User user = userService.findByUserId(userId);
+            List<Diary> familyDiaries = diaryService.getFamilyDiaries(user);
+            
+            return ResponseEntity.ok(Map.of(
+                "diaries", familyDiaries,
+                "totalCount", familyDiaries.size(),
+                "message", "가족 일기를 성공적으로 가져왔습니다."
+            ));
+        } catch (Exception e) {
+            log.error("가족 일기 조회 실패: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("가족 일기를 가져올 수 없습니다: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/family/others")
+    public ResponseEntity<?> getFamilyDiariesExceptMine(@RequestParam String userId) {
+        try {
+            User user = userService.findByUserId(userId);
+            List<Diary> otherFamilyDiaries = diaryService.getFamilyDiariesExceptMine(user);
+            
+            return ResponseEntity.ok(Map.of(
+                "diaries", otherFamilyDiaries,
+                "totalCount", otherFamilyDiaries.size(),
+                "message", "가족 구성원들의 일기를 성공적으로 가져왔습니다."
+            ));
+        } catch (Exception e) {
+            log.error("가족 일기 조회 실패: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("가족 일기를 가져올 수 없습니다: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{diaryId}")
+    public ResponseEntity<?> getDiaryById(@PathVariable Long diaryId,
+                                         @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            User user = userService.findByUserId(userDetails.getUsername());
+            Diary diary = diaryService.getDiaryById(diaryId, user);
+            
+            // 일기에 달린 리액션들도 함께 반환
+            List<ReactionResponse> reactions = reactionService.getReactionsByDiary(diaryId);
+            
+            return ResponseEntity.ok(Map.of(
+                "diary", diary,
+                "reactions", reactions,
+                "reactionCount", reactions.size()
+            ));
+        } catch (Exception e) {
+            log.error("일기 조회 실패: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("일기를 가져올 수 없습니다: " + e.getMessage());
+        }
+    }
+
+    // ===== 리액션 기능 =====
+
+    @PostMapping("/{diaryId}/reaction")
+    public ResponseEntity<?> addReactionToDiary(@PathVariable Long diaryId,
+                                               @RequestBody ReactionRequest request,
+                                               @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            User user = userService.findByUserId(userDetails.getUsername());
+            Map<String, Object> result = reactionService.createDiaryReaction(diaryId, user, request.getReactionType());
+            
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("일기 리액션 추가 실패: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("리액션 추가에 실패했습니다: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{diaryId}/reactions")
+    public ResponseEntity<?> getDiaryReactions(@PathVariable Long diaryId) {
+        try {
+            List<ReactionResponse> reactions = reactionService.getReactionsByDiary(diaryId);
+            
+            return ResponseEntity.ok(Map.of(
+                "reactions", reactions,
+                "totalCount", reactions.size()
+            ));
+        } catch (Exception e) {
+            log.error("일기 리액션 조회 실패: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("리액션을 가져올 수 없습니다: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/reaction/{reactionId}")
+    public ResponseEntity<?> deleteReaction(@PathVariable Long reactionId,
+                                           @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            User user = userService.findByUserId(userDetails.getUsername());
+            Map<String, String> result = reactionService.deleteDiaryReaction(reactionId, user);
+            
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("리액션 삭제 실패: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("리액션 삭제에 실패했습니다: " + e.getMessage());
         }
     }
 }

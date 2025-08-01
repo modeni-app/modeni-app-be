@@ -296,8 +296,13 @@ public class WelfareRecommendationService {
             recommendation.setAnalysisKeywords(String.join(", ", analysis.getKeywords()));
             recommendation.setEmotionAnalysis(analysis.getAnalysisText());
             
-            // 기본 추천 이유
-            recommendation.setReason(generateRecommendationReason(program, analysis));
+            // 버튼 기반 추천인 경우 개인화된 추천 이유 사용
+            if (emotionKeyword != null && wishActivity != null) {
+                recommendation.setReason(generatePersonalizedReason(program, analysis, emotionKeyword, wishActivity));
+            } else {
+                // 기본 추천 이유
+                recommendation.setReason(generateRecommendationReason(program, analysis));
+            }
             
             recommendationRepository.save(recommendation);
             
@@ -328,17 +333,86 @@ public class WelfareRecommendationService {
     }
 
     private String generateRecommendationReason(WelfareProgram program, EmotionAnalysisResult analysis) {
+        return generatePersonalizedReason(program, analysis, null, null);
+    }
+    
+    private String generatePersonalizedReason(WelfareProgram program, EmotionAnalysisResult analysis, String emotion, String activity) {
         StringBuilder reason = new StringBuilder();
         
-        if (emotionAnalysisService.isNegativeEmotion(analysis)) {
-            reason.append("현재 ").append(analysis.getEmotionCategory()).append(" 상태를 고려하여 ");
+        // 감정에 따른 친근한 인사말
+        if (emotion != null) {
+            switch (emotion) {
+                case "우울함":
+                case "슬픔":
+                    reason.append("요즘 마음이 힘드시군요. ");
+                    break;
+                case "불안함":
+                case "초조함":
+                    reason.append("마음이 불안하신 것 같아요. ");
+                    break;
+                case "행복":
+                case "여유로움":
+                    reason.append("좋은 기분이시네요! ");
+                    break;
+                case "화남":
+                case "짜증":
+                    reason.append("스트레스가 많으신 것 같아요. ");
+                    break;
+                default:
+                    reason.append("오늘의 기분에 맞는 ");
+            }
         }
         
-        reason.append(program.getCategory()).append(" 분야의 ").append(program.getTitle()).append("을(를) 추천합니다.");
+        // 희망활동에 따른 추천 이유
+        if (activity != null) {
+            switch (activity) {
+                case "산책하기":
+                    reason.append("산책을 좋아하시는 분에게 ");
+                    break;
+                case "요리하기":
+                    reason.append("요리에 관심이 많으신 분에게 ");
+                    break;
+                case "그림그리기":
+                    reason.append("창작 활동을 좋아하시는 분에게 ");
+                    break;
+                case "음악감상":
+                    reason.append("음악을 사랑하시는 분에게 ");
+                    break;
+                case "독서하기":
+                    reason.append("책 읽기를 좋아하시는 분에게 ");
+                    break;
+                case "운동하기":
+                    reason.append("활동적인 삶을 좋아하시는 분에게 ");
+                    break;
+                case "영화감상":
+                    reason.append("영화를 좋아하시는 분에게 ");
+                    break;
+                default:
+                    reason.append("이런 활동을 좋아하시는 분에게 ");
+            }
+        }
         
-        if (!analysis.getKeywords().isEmpty()) {
-            reason.append(" 특히 '").append(String.join(", ", analysis.getKeywords()))
-                  .append("' 키워드와 관련이 있습니다.");
+        // 프로그램 소개
+        reason.append(program.getTitle()).append("을(를) 추천드려요! ");
+        
+        // 추천 이유 상세 설명
+        if (program.getCategory().contains("문화")) {
+            reason.append("다양한 문화 체험을 통해 새로운 즐거움을 찾을 수 있어요.");
+        } else if (program.getCategory().contains("교육")) {
+            reason.append("새로운 지식과 기술을 배우며 성장할 수 있는 기회예요.");
+        } else if (program.getCategory().contains("여가")) {
+            reason.append("일상에서 벗어나 편안한 시간을 보낼 수 있어요.");
+        } else if (program.getCategory().contains("건강")) {
+            reason.append("머리와 마음의 건강을 동시에 챙길 수 있는 프로그램이에요.");
+        } else {
+            reason.append("의미 있는 시간을 보내며 새로운 경험을 할 수 있어요.");
+        }
+        
+        // 마무리 멘트
+        if (emotion != null && ("우울함".equals(emotion) || "불안함".equals(emotion))) {
+            reason.append(" 좋은 사람들과 함께하며 마음의 안정을 찾으실 수 있을 거예요.");
+        } else {
+            reason.append(" 즐거운 시간 보내세요!");
         }
         
         return reason.toString();
@@ -371,11 +445,53 @@ public class WelfareRecommendationService {
     }
 
     public List<WelfareRecommendationResponse> recommendByButtons(User user, String emotion, String activity) {
-        // 버튼 기반 추천 처리
-        processButtonBasedRecommend(user, emotion, activity);
-        
-        // 임시로 빈 리스트 반환
-        return new ArrayList<>();
+        try {
+            log.info("사용자 {}의 버튼 기반 복지 추천 시작: 감정={}, 희망활동={}", user.getId(), emotion, activity);
+            
+            // 버튼 기반 감정 분석 수행 (동기적 처리)
+            EmotionAnalysisResult analysis = emotionAnalysisService.analyzeButtonBasedEmotion(emotion, activity, null);
+            
+            // 추천 프로그램 찾기
+            List<WelfareProgram> recommendedPrograms = findRecommendedPrograms(user, analysis);
+            
+            if (recommendedPrograms.isEmpty()) {
+                log.info("사용자 {}에게 추천할 프로그램이 없음", user.getId());
+                return new ArrayList<>();
+            }
+            
+            // 추천 결과 저장
+            saveRecommendations(user, recommendedPrograms, analysis, false, emotion, activity);
+            
+            log.info("사용자 {}의 버튼 기반 복지 추천 완료: {}개 프로그램", user.getId(), recommendedPrograms.size());
+            
+            // 방금 생성된 추천 결과를 개인화된 이유와 함께 반환 (버튼 기반 추천은 4개로 제한)
+            return recommendedPrograms.stream()
+                    .limit(4)
+                    .map(program -> {
+                        WelfareRecommendationResponse response = new WelfareRecommendationResponse();
+                        response.setId(program.getId());
+                        response.setTitle(program.getTitle());
+                        response.setDescription(program.getDescription());
+                        response.setOrganization(program.getOrganization());
+                        response.setCategory(program.getCategory());
+                        response.setTargetCity(program.getTargetCity() != null ? program.getTargetCity().getDisplayName() : null);
+                        response.setApplicationUrl(program.getApplicationUrl());
+                        response.setContactNumber(program.getContactNumber());
+                        response.setTarget(program.getTargetDescription());
+                        response.setLocation(program.getLocation());
+                        response.setSchedule(program.getSchedule());
+                        
+                        // 개인화된 추천 이유 추가
+                        response.setReason(generatePersonalizedReason(program, analysis, emotion, activity));
+                        
+                        return response;
+                    })
+                    .collect(Collectors.toList());
+                    
+        } catch (Exception e) {
+            log.error("버튼 기반 추천 오류: 사용자 {}, 오류: {}", user.getId(), e.getMessage());
+            return new ArrayList<>();
+        }
     }
 
     public WelfareRecommendationResponse getRecommendationDetail(Long id, User user) {

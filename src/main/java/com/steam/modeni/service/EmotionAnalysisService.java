@@ -1,8 +1,11 @@
 package com.steam.modeni.service;
 
 import com.steam.modeni.dto.EmotionAnalysisResult;
+import com.steam.modeni.domain.entity.User;
 import com.steam.modeni.domain.entity.WelfareProgram;
+import com.steam.modeni.domain.enums.EmotionKeyword;
 import com.steam.modeni.domain.enums.PersonalityType;
+import com.steam.modeni.domain.enums.WishActivity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -158,10 +161,9 @@ public class EmotionAnalysisService {
         EmotionAnalysisResult result = new EmotionAnalysisResult();
         
         // 긍정적 감정 키워드들
-        List<String> positiveEmotions = List.of("행복", "뿌듯함", "즐거움", "설렘", "여유로움", "활기참", "안도감", "차분함", "기특함");
-        
-        // 부정적 감정 키워드들  
-        List<String> negativeEmotions = List.of("서운함", "불안함", "짜증남", "초조함", "실망", "후회", "우울함", "슬픔", "지침", "답답함");
+        List<String> positiveEmotions = EmotionKeyword.getPositiveEmotionNames();
+        // 부정적 감정 키워드 (10개)
+        List<String> negativeEmotions = EmotionKeyword.getNegativeEmotionNames();
         
         // 감정 분석
         if (positiveEmotions.contains(emotionKeyword)) {
@@ -345,9 +347,9 @@ public class EmotionAnalysisService {
     private String generateButtonBasedAnalysis(String emotionKeyword, String wishActivity) {
         StringBuilder analysis = new StringBuilder();
         
-        if (List.of("행복", "뿌듯함", "즐거움", "설렘", "여유로움", "활기참", "안도감", "차분함", "기특함").contains(emotionKeyword)) {
+        if (EmotionKeyword.getPositiveEmotionNames().contains(emotionKeyword)) {
             analysis.append("긍정적인 감정 상태로 보입니다. ");
-        } else if (List.of("서운함", "불안함", "짜증남", "초조함", "실망", "후회", "우울함", "슬픔", "지침", "답답함").contains(emotionKeyword)) {
+        } else if (EmotionKeyword.getNegativeEmotionNames().contains(emotionKeyword)) {
             analysis.append("부정적인 감정 상태로 보입니다. ");
         }
         
@@ -440,7 +442,7 @@ public class EmotionAnalysisService {
         StringBuilder reason = new StringBuilder();
         
         // 감정 기반
-        if (List.of("행복", "뿌듯함", "즐거움", "설렘", "여유로움", "활기참", "안도감", "차분함", "기특함").contains(emotionKeyword)) {
+        if (EmotionKeyword.getPositiveEmotionNames().contains(emotionKeyword)) {
             reason.append("현재 긍정적인 감정 상태에서 ");
         } else {
             reason.append("현재 ").append(emotionKeyword).append(" 상태에서 ");

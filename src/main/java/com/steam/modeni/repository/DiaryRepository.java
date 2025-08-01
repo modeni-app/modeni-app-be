@@ -32,4 +32,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
     
     // 특정 감정 키워드가 포함된 일기
     List<Diary> findByUserAndEmotionKeywordContainingOrderByCreatedAtDesc(User user, String emotionKeyword);
+    
+    // 가족 공유 기능을 위한 메서드
+    List<Diary> findByUserInOrderByCreatedAtDesc(List<User> users);
 }

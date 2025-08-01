@@ -13,7 +13,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/openai")
+@RequestMapping("/openai")
 @RequiredArgsConstructor
 public class OpenAiController {
 

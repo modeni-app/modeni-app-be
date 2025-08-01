@@ -1,6 +1,6 @@
 package com.steam.modeni.controller;
 
-import com.steam.modeni.config.JwtUtil;
+
 import com.steam.modeni.domain.entity.User;
 import com.steam.modeni.dto.WelfareRecommendationResponse;
 import com.steam.modeni.service.UserService;
@@ -10,7 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,24 +24,12 @@ public class WelfareController {
 
     private final WelfareRecommendationService welfareRecommendationService;
     private final UserService userService;
-    private final JwtUtil jwtUtil;
 
-    private User getCurrentUser(HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            if (jwtUtil.validateToken(token)) {
-                String username = jwtUtil.getUsernameFromToken(token);
-                return userService.findByUserId(username);
-            }
-        }
-        throw new RuntimeException("인증되지 않은 사용자입니다.");
-    }
 
     @GetMapping("/recommendations")
-    public ResponseEntity<?> getUserRecommendations(HttpServletRequest request) {
+    public ResponseEntity<?> getUserRecommendations(@AuthenticationPrincipal UserDetails userDetails) {
         try {
-            User user = getCurrentUser(request);
+            User user = userService.findByUserId(userDetails.getUsername());
             List<WelfareRecommendationResponse> recommendations = 
                 welfareRecommendationService.getUserRecommendations(user);
             
@@ -55,9 +44,9 @@ public class WelfareController {
     }
 
     @GetMapping("/recommendations/unread")
-    public ResponseEntity<?> getUnreadRecommendations(HttpServletRequest request) {
+    public ResponseEntity<?> getUnreadRecommendations(@AuthenticationPrincipal UserDetails userDetails) {
         try {
-            User user = getCurrentUser(request);
+            User user = userService.findByUserId(userDetails.getUsername());
             List<WelfareRecommendationResponse> recommendations = 
                 welfareRecommendationService.getUnreadRecommendations(user);
             
@@ -75,14 +64,14 @@ public class WelfareController {
 
     @PostMapping("/analyze-emotion")
     public ResponseEntity<?> analyzeEmotionAndRecommend(@RequestBody Map<String, String> request,
-                                                       HttpServletRequest httpRequest) {
+                                                       @AuthenticationPrincipal UserDetails userDetails) {
         try {
             String emotionText = request.get("text");
             if (emotionText == null || emotionText.trim().isEmpty()) {
                 return ResponseEntity.badRequest().body("감정 텍스트가 필요합니다.");
             }
 
-            User user = getCurrentUser(httpRequest);
+            User user = userService.findByUserId(userDetails.getUsername());
             List<WelfareRecommendationResponse> recommendations = 
                 welfareRecommendationService.analyzeEmotionAndRecommend(user, emotionText);
             
@@ -99,7 +88,7 @@ public class WelfareController {
 
     @PostMapping("/recommend-by-buttons")
     public ResponseEntity<?> recommendByButtons(@RequestBody Map<String, String> request,
-                                               HttpServletRequest httpRequest) {
+                                               @AuthenticationPrincipal UserDetails userDetails) {
         try {
             String emotion = request.get("emotion");
             String activity = request.get("activity");
@@ -108,7 +97,7 @@ public class WelfareController {
                 return ResponseEntity.badRequest().body("감정 정보가 필요합니다.");
             }
 
-            User user = getCurrentUser(httpRequest);
+            User user = userService.findByUserId(userDetails.getUsername());
             List<WelfareRecommendationResponse> recommendations = 
                 welfareRecommendationService.recommendByButtons(user, emotion, activity);
             
@@ -124,9 +113,9 @@ public class WelfareController {
     }
 
     @GetMapping("/recommendations/{id}")
-    public ResponseEntity<?> getRecommendationDetail(@PathVariable Long id, HttpServletRequest request) {
+    public ResponseEntity<?> getRecommendationDetail(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            User user = getCurrentUser(request);
+            User user = userService.findByUserId(userDetails.getUsername());
             WelfareRecommendationResponse recommendation = 
                 welfareRecommendationService.getRecommendationDetail(id, user);
             
@@ -143,9 +132,9 @@ public class WelfareController {
     public ResponseEntity<?> searchPrograms(@RequestParam(required = false) String keyword,
                                            @RequestParam(required = false) String category,
                                            @RequestParam(required = false) Integer age,
-                                           HttpServletRequest request) {
+                                           @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            User user = getCurrentUser(request);
+            User user = userService.findByUserId(userDetails.getUsername());
             List<WelfareRecommendationResponse> programs = 
                 welfareRecommendationService.searchPrograms(user, keyword, category, age);
             
@@ -161,13 +150,13 @@ public class WelfareController {
 
     @PostMapping("/get-personalized-recommendations")
     public ResponseEntity<?> getPersonalizedRecommendations(@RequestBody Map<String, String> request,
-                                                           HttpServletRequest httpRequest) {
+                                                           @AuthenticationPrincipal UserDetails userDetails) {
         try {
             String emotion = request.get("emotion");
             String activity = request.get("activity");
             String keyword = request.get("keyword");
             
-            User user = getCurrentUser(httpRequest);
+            User user = userService.findByUserId(userDetails.getUsername());
             List<WelfareRecommendationResponse> recommendations = 
                 welfareRecommendationService.getPersonalizedRecommendations(user, emotion, activity, keyword);
             
@@ -184,9 +173,9 @@ public class WelfareController {
     
     @PostMapping("/recommend-simple")
     public ResponseEntity<?> getSimpleRecommendations(@RequestBody Map<String, String> request,
-                                                     HttpServletRequest httpRequest) {
+                                                     @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            User user = getCurrentUser(httpRequest);
+            User user = userService.findByUserId(userDetails.getUsername());
             
             // 간단한 복지 정보 카드 4개 생성
             List<Map<String, Object>> welfareCards = new ArrayList<>();
