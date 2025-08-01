@@ -28,6 +28,11 @@ public class AuthService {
             throw new RuntimeException("이미 사용중인 사용자ID입니다.");
         }
         
+        // familyCode 필수 확인
+        if (request.getFamilyCode() == null) {
+            throw new RuntimeException("가족 코드는 필수입니다.");
+        }
+        
         // 사용자 생성
         User user = new User();
         user.setUserId(request.getUserId());
@@ -37,27 +42,8 @@ public class AuthService {
         user.setRegion(request.getRegion());
         user.setAge(request.getAge());
         
-        // 가족 코드 처리
-        Long familyCode;
-        if (request.getFamilyCode() != null && !request.getFamilyCode().trim().isEmpty()) {
-            // 기존 가족 참여 - 가족 코드 파싱
-            try {
-                // "FAM39685B" 형태에서 숫자 부분만 추출하거나 전체를 해시로 변환
-                familyCode = parseFamilyCode(request.getFamilyCode());
-                
-                // 해당 가족 코드를 사용하는 다른 사용자가 있는지 확인
-                if (userRepository.findByFamilyCode(familyCode).isEmpty()) {
-                    throw new RuntimeException("존재하지 않는 가족 코드입니다.");
-                }
-            } catch (Exception e) {
-                throw new RuntimeException("잘못된 가족 코드 형식입니다.");
-            }
-        } else {
-            // 새로운 가족 생성
-            familyCode = generateFamilyCode();
-        }
-        
-        user.setFamilyCode(familyCode);
+        // 프론트에서 받은 familyCode를 그대로 저장
+        user.setFamilyCode(request.getFamilyCode());
         User savedUser = userRepository.save(user);
         
         // JWT 토큰 생성

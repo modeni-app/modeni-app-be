@@ -27,6 +27,7 @@ public class SignupRequest {
     @NotBlank(message = "지역은 필수입니다")
     private String region;
     
-    // 선택적 필드 - 기존 가족에 참여할 때 사용
-    private String familyCode;
+    // 필수 필드 - 프론트에서 생성한 가족 코드
+    @NotNull(message = "가족 코드는 필수입니다")
+    private Long familyCode;
 }
