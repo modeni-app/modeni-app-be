@@ -84,4 +84,13 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Inquiry> inquiries;
+    
+    // 편의 메서드들
+    public Long getFamilyCode() {
+        return family != null ? Long.parseLong(family.getFamilyCode()) : null;
+    }
+    
+    public Long getUserId() {
+        return this.id;
+    }
 } 
