@@ -49,8 +49,19 @@ public class AuthService {
         // JWT 토큰 생성
         String token = jwtUtil.generateToken(savedUser.getUserId(), savedUser.getId());
         
-        return new AuthResponse(token, savedUser.getId(), savedUser.getUserId(), 
-                savedUser.getFamilyCode(), "회원가입이 성공적으로 완료되었습니다.");
+        AuthResponse response = new AuthResponse();
+        response.setId(savedUser.getId());
+        response.setName(savedUser.getName());
+        response.setUserId(savedUser.getUserId());
+        response.setRole(savedUser.getRole());
+        response.setRegion(savedUser.getRegion());
+        response.setAge(savedUser.getAge());
+        response.setFamilyCode(savedUser.getFamilyCode());
+        response.setCreatedAt(savedUser.getCreatedAt());
+        response.setToken(token);
+        response.setMessage("회원가입이 성공적으로 완료되었습니다.");
+        
+        return response;
     }
     
     public AuthResponse login(LoginRequest request) {
@@ -63,8 +74,19 @@ public class AuthService {
         
         String token = jwtUtil.generateToken(user.getUserId(), user.getId());
         
-        return new AuthResponse(token, user.getId(), user.getUserId(), 
-                user.getFamilyCode(), "로그인이 성공적으로 완료되었습니다.");
+        AuthResponse response = new AuthResponse();
+        response.setId(user.getId());
+        response.setName(user.getName());
+        response.setUserId(user.getUserId());
+        response.setRole(user.getRole());
+        response.setRegion(user.getRegion());
+        response.setAge(user.getAge());
+        response.setFamilyCode(user.getFamilyCode());
+        response.setCreatedAt(user.getCreatedAt());
+        response.setToken(token);
+        response.setMessage("로그인이 성공적으로 완료되었습니다.");
+        
+        return response;
     }
     
     public AuthResponse joinFamily(Long userId, JoinFamilyRequest request) {
@@ -85,8 +107,19 @@ public class AuthService {
         // JWT 토큰 재생성
         String token = jwtUtil.generateToken(user.getUserId(), user.getId());
         
-        return new AuthResponse(token, user.getId(), user.getUserId(), 
-                user.getFamilyCode(), "가족 참여가 성공적으로 완료되었습니다!");
+        AuthResponse response = new AuthResponse();
+        response.setId(user.getId());
+        response.setName(user.getName());
+        response.setUserId(user.getUserId());
+        response.setRole(user.getRole());
+        response.setRegion(user.getRegion());
+        response.setAge(user.getAge());
+        response.setFamilyCode(user.getFamilyCode());
+        response.setCreatedAt(user.getCreatedAt());
+        response.setToken(token);
+        response.setMessage("가족 참여가 성공적으로 완료되었습니다!");
+        
+        return response;
     }
     
     public GetFamilyCodeResponse getFamilyCode(Long userId) {
