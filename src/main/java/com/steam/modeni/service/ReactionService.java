@@ -38,7 +38,7 @@ public class ReactionService {
         }
         
         // 같은 가족 구성원인지 확인
-        if (!answer.getUser().getFamily().getId().equals(user.getFamily().getId())) {
+        if (!answer.getUser().getFamilyCode().equals(user.getFamilyCode())) {
             throw new RuntimeException("같은 가족 구성원만 공감할 수 있습니다.");
         }
         

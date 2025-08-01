@@ -34,8 +34,8 @@ public class AnswerService {
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         
         // 사용자의 가족에 대한 오늘의 질문인지 확인
-        Long familyId = user.getFamily().getId();
-        if (!dailyQuestionService.isQuestionForTodayAndFamily(question, familyId)) {
+        Long familyCode = user.getFamilyCode();
+        if (!dailyQuestionService.isQuestionForTodayAndFamily(question, familyCode)) {
             throw new RuntimeException("오늘의 질문에만 답변할 수 있습니다.");
         }
         
@@ -102,8 +102,8 @@ public class AnswerService {
     }
     
     @Transactional(readOnly = true)
-    public List<AnswerResponse> getTodayAnswersForFamily(Long familyId) {
-        Question todayQuestion = dailyQuestionService.getTodayQuestionForFamily(familyId);
+    public List<AnswerResponse> getTodayAnswersForFamily(Long familyCode) {
+        Question todayQuestion = dailyQuestionService.getTodayQuestionForFamily(familyCode);
         if (todayQuestion == null) {
             throw new RuntimeException("오늘의 질문을 찾을 수 없습니다.");
         }
@@ -111,7 +111,7 @@ public class AnswerService {
         List<Answer> answers = answerRepository.findByQuestionOrderByCreatedAtAsc(todayQuestion);
         // 같은 가족의 답변만 필터링
         return answers.stream()
-                .filter(answer -> answer.getUser().getFamily().getId().equals(familyId))
+                .filter(answer -> answer.getUser().getFamilyCode().equals(familyCode))
                 .map(this::convertToAnswerResponse)
                 .collect(Collectors.toList());
     }
@@ -120,7 +120,7 @@ public class AnswerService {
         AnswerResponse.UserInfo userInfo = new AnswerResponse.UserInfo(
                 answer.getUser().getId(),
                 answer.getUser().getName(),
-                answer.getUser().getUsername()
+                answer.getUser().getUserId()
         );
         
         return new AnswerResponse(

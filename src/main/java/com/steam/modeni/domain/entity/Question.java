@@ -24,10 +24,8 @@ public class Question {
     @Column(columnDefinition = "TEXT")
     private String content;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "family_id", nullable = false)
-    @JsonIgnore
-    private Family family;
+    @Column(name = "family_code")
+    private Long familyCode;
     
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -35,4 +33,4 @@ public class Question {
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Answer> answers;
-} 
+}

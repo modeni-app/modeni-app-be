@@ -11,15 +11,15 @@ public class AuthResponse {
     private String token;
     private String type = "Bearer";
     private Long userId;
-    private String username;
-    private String familyCode;
+    private String userIdString;
+    private Long familyCode;
     private String message;
     
-    public AuthResponse(String token, Long userId, String username, String familyCode, String message) {
+    public AuthResponse(String token, Long userId, String userIdString, Long familyCode, String message) {
         this.token = token;
         this.userId = userId;
-        this.username = username;
+        this.userIdString = userIdString;
         this.familyCode = familyCode;
         this.message = message;
     }
-} 
+}

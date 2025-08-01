@@ -34,9 +34,9 @@ public class QuestionService {
     }
     
     @Transactional(readOnly = true)
-    public Question getRandomQuestionForFamily(Long familyId) {
+    public Question getRandomQuestionForFamily(Long familyCode) {
         // 가족 구성원 조회
-        List<User> familyMembers = userRepository.findByFamilyId(familyId);
+        List<User> familyMembers = userRepository.findByFamilyCode(familyCode);
         if (familyMembers.isEmpty()) {
             throw new RuntimeException("가족 구성원을 찾을 수 없습니다.");
         }

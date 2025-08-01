@@ -1,8 +1,6 @@
 package com.steam.modeni.service;
 
-import com.steam.modeni.domain.entity.Family;
 import com.steam.modeni.domain.entity.Question;
-import com.steam.modeni.repository.FamilyRepository;
 import com.steam.modeni.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
@@ -19,7 +17,6 @@ import java.util.List;
 public class QuestionInitService implements ApplicationRunner {
     
     private final QuestionRepository questionRepository;
-    private final FamilyRepository familyRepository;
     
     private static final List<String> INITIAL_QUESTIONS = Arrays.asList(
         "우리 가족의 숨겨진 재능은 무엇이라고 생각하나요?",
@@ -46,22 +43,14 @@ public class QuestionInitService implements ApplicationRunner {
             return;
         }
         
-        // 시스템 기본 가족 생성 (질문용)
-        Family systemFamily = familyRepository.findByFamilyCode("SYSTEM")
-                .orElseGet(() -> {
-                    Family family = new Family();
-                    family.setFamilyCode("SYSTEM");
-                    family.setMotto("시스템 기본 질문용 가족");
-                    return familyRepository.save(family);
-                });
-        
+        // 시스템 질문 생성 (familyCode = 0L)
         for (int i = 0; i < INITIAL_QUESTIONS.size(); i++) {
             Question question = new Question();
             question.setContent(INITIAL_QUESTIONS.get(i));
-            question.setFamily(systemFamily);
+            question.setFamilyCode(0L); // 시스템 질문은 familyCode = 0L
             questionRepository.save(question);
         }
         
         System.out.println("✅ 초기 질문 데이터가 성공적으로 저장되었습니다. (총 " + INITIAL_QUESTIONS.size() + "개)");
     }
-} 
+}
