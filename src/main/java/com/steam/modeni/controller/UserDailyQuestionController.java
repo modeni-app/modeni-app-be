@@ -1,7 +1,9 @@
 package com.steam.modeni.controller;
 
 import com.steam.modeni.domain.entity.UserDailyQuestion;
+import com.steam.modeni.dto.InitialQuestionResponse;
 import com.steam.modeni.dto.UserDailyQuestionResponse;
+import com.steam.modeni.service.QuestionInitService;
 import com.steam.modeni.service.UserDailyQuestionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -9,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +23,7 @@ import java.util.stream.Collectors;
 public class UserDailyQuestionController {
     
     private final UserDailyQuestionService userDailyQuestionService;
+    private final QuestionInitService questionInitService;
     
     /**
      * 사용자의 오늘 질문 조회
@@ -142,6 +146,25 @@ public class UserDailyQuestionController {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+    
+    /**
+     * 초기 질문 목록 조회 (id와 content 포함)
+     */
+    @GetMapping("/initial-questions")
+    public ResponseEntity<List<InitialQuestionResponse>> getInitialQuestions() {
+        try {
+            List<String> initialQuestions = questionInitService.getInitialQuestions();
+            List<InitialQuestionResponse> responses = new ArrayList<>();
+            
+            for (int i = 0; i < initialQuestions.size(); i++) {
+                responses.add(new InitialQuestionResponse(i + 1, initialQuestions.get(i)));
+            }
+            
+            return ResponseEntity.ok(responses);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
     

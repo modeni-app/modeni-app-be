@@ -37,6 +37,13 @@ public class QuestionInitService implements ApplicationRunner {
         initializeQuestions();
     }
     
+    /**
+     * 초기 질문 목록을 반환합니다.
+     */
+    public List<String> getInitialQuestions() {
+        return INITIAL_QUESTIONS;
+    }
+    
     private void initializeQuestions() {
         // 이미 질문이 있다면 초기화하지 않음
         if (questionRepository.count() > 0) {
