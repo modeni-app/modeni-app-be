@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +18,22 @@ import java.util.Map;
 public class UserService {
     
     private final UserRepository userRepository;
+    
+    @Transactional(readOnly = true)
+    public List<UserResponse> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(this::convertToUserResponse)
+                .collect(Collectors.toList());
+    }
+    
+    @Transactional(readOnly = true)
+    public List<UserResponse> getUsersByFamilyCode(Long familyCode) {
+        List<User> users = userRepository.findByFamilyCode(familyCode);
+        return users.stream()
+                .map(this::convertToUserResponse)
+                .collect(Collectors.toList());
+    }
     
     @Transactional(readOnly = true)
     public UserResponse getUserById(Long id) {

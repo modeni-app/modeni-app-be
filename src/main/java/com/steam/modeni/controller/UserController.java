@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -14,6 +15,26 @@ import java.util.Map;
 public class UserController {
     
     private final UserService userService;
+    
+    @GetMapping
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        try {
+            List<UserResponse> users = userService.getAllUsers();
+            return ResponseEntity.ok(users);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @GetMapping("/family/{familyCode}")
+    public ResponseEntity<List<UserResponse>> getUsersByFamilyCode(@PathVariable Long familyCode) {
+        try {
+            List<UserResponse> users = userService.getUsersByFamilyCode(familyCode);
+            return ResponseEntity.ok(users);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
     
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
