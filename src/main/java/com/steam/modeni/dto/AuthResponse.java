@@ -21,6 +21,5 @@ public class AuthResponse {
     private String familyCode;
     private LocalDateTime createdAt;
     private String token;
-    private String type = "Bearer";
     private String message;
 }
