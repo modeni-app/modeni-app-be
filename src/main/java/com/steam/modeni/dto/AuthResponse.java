@@ -10,15 +10,15 @@ import lombok.Setter;
 public class AuthResponse {
     private String token;
     private String type = "Bearer";
-    private Long userId;
-    private String username;
-    private String familyCode;
+    private Long id;
+    private String userId;
+    private Long familyCode;
     private String message;
     
-    public AuthResponse(String token, Long userId, String username, String familyCode, String message) {
+    public AuthResponse(String token, Long id, String userId, Long familyCode, String message) {
         this.token = token;
+        this.id = id;
         this.userId = userId;
-        this.username = username;
         this.familyCode = familyCode;
         this.message = message;
     }

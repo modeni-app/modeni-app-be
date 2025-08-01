@@ -30,15 +30,16 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         
         // 업데이트 가능한 필드들만 처리
-        if (updates.containsKey("city")) {
-            // City enum으로 변환 필요 - 실제 구현에서는 더 정교한 변환 로직 필요
-            // 현재는 단순화된 예시
-            String cityValue = (String) updates.get("city");
-            // 실제로는 cityValue를 City enum으로 변환하는 로직 필요
+        if (updates.containsKey("region")) {
+            user.setRegion((String) updates.get("region"));
         }
 
         if (updates.containsKey("age")) {
-            user.setAge((Integer) updates.get("age"));
+            user.setAge((String) updates.get("age"));
+        }
+        
+        if (updates.containsKey("role")) {
+            user.setRole((String) updates.get("role"));
         }
         
         userRepository.save(user);
@@ -63,18 +64,13 @@ public class UserService {
     private UserResponse convertToUserResponse(User user) {
         UserResponse response = new UserResponse();
         response.setId(user.getId());
+        response.setUserId(user.getUserId());
         response.setName(user.getName());
-        response.setUsername(user.getUsername());
         response.setRole(user.getRole());
-        response.setCustomRole(user.getCustomRole());
-        response.setCity(user.getCity());
+        response.setRegion(user.getRegion());
         response.setAge(user.getAge());
+        response.setFamilyCode(user.getFamilyCode());
         response.setCreatedAt(user.getCreatedAt());
-        
-        if (user.getFamily() != null) {
-            response.setFamilyId(user.getFamily().getId());
-            response.setFamilyCode(user.getFamily().getFamilyCode());
-        }
         
         return response;
     }

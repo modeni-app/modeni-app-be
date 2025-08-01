@@ -1,10 +1,6 @@
 package com.steam.modeni.controller;
 
-import com.steam.modeni.dto.AuthResponse;
-import com.steam.modeni.dto.GetFamilyCodeResponse;
-import com.steam.modeni.dto.JoinFamilyRequest;
-import com.steam.modeni.dto.LoginRequest;
-import com.steam.modeni.dto.SignupRequest;
+import com.steam.modeni.dto.*;
 import com.steam.modeni.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,10 +34,10 @@ public class AuthController {
         }
     }
     
-    @GetMapping("/get-family-code/{userId}")
-    public ResponseEntity<?> getFamilyCode(@PathVariable Long userId) {
+    @PostMapping("/generate-family-code/{userId}")
+    public ResponseEntity<?> generateFamilyCode(@PathVariable Long userId, @Valid @RequestBody GenerateFamilyCodeRequest request) {
         try {
-            GetFamilyCodeResponse response = authService.getFamilyCode(userId);
+            GenerateFamilyCodeResponse response = authService.generateFamilyCode(userId, request);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));

@@ -1,8 +1,6 @@
 package com.steam.modeni.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.steam.modeni.domain.enums.City;
-import com.steam.modeni.domain.enums.FamilyRole;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,30 +21,29 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(unique = true, nullable = false)
-    private String username;
+    @Column(name = "user_id", unique = true, nullable = false)
+    private String userId;
     
     @Column(nullable = false)
     private String password;
     
+    @Column(nullable = false)
     private String name;
     
-    @Enumerated(EnumType.STRING)
-    private FamilyRole role;
+    @Column(nullable = false)
+    private String role;
     
-    // 기타 역할일 때 사용 (삼촌, 고모, 할머니 등)
-    private String customRole;
+    @Column(nullable = false)
+    private String region;
     
-    @Enumerated(EnumType.STRING)
-    private City city;
+    @Column(nullable = false)
+    private String age;
     
-    private Integer age;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "family_id")
-    private Family family;
+    @Column(name = "family_code")
+    private Long familyCode;
     
     @CreationTimestamp
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
