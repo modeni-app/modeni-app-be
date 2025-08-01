@@ -36,10 +36,10 @@ public class UserController {
         }
     }
     
-    @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserResponse> getUserByUserId(@PathVariable String userId) {
         try {
-            UserResponse user = userService.getUserById(id);
+            UserResponse user = userService.getUserByUserId(userId);
             return ResponseEntity.ok(user);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();

@@ -43,6 +43,14 @@ public class UserService {
         return convertToUserResponse(user);
     }
     
+    @Transactional(readOnly = true)
+    public UserResponse getUserByUserId(String userId) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
+        return convertToUserResponse(user);
+    }
+    
     public Map<String, String> updateUser(Long id, Map<String, Object> updates) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
